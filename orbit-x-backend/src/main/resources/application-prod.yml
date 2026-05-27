@@ -1,0 +1,24 @@
+# Perfil de produção — credenciais via variáveis de ambiente
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: none       # Flyway gerencia o schema em produção
+    show-sql: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+  ai:
+    openai:
+      api-key: ${GROQ_API_KEY}
+
+logging:
+  level:
+    com.orbitx: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN

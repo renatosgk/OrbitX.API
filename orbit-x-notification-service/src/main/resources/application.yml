@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: orbit-x-notification-service
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
+    listener:
+      simple:
+        acknowledge-mode: manual     # Manual ACK — only ACK after processing succeeds
+        prefetch: 10
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 2000
+          multiplier: 2.0
+          max-interval: 10000
+  mail:
+    host: ${SMTP_HOST:smtp.gmail.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USER:alerts@orbitx.io}
+    password: ${SMTP_PASS:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+server:
+  port: 8085
+
+orbitx:
+  messaging:
+    alerts-queue: orbitx.alerts.queue
+    thermal-queue: orbitx.thermal.queue
+  notifications:
+    ops-email: ${OPS_EMAIL:ops@orbitx.io}
+    slack-webhook: ${SLACK_WEBHOOK_URL:}
+
+logging:
+  level:
+    com.orbitx: DEBUG
+    org.springframework.amqp: INFO
