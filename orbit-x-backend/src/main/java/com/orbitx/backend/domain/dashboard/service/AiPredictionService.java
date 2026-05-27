@@ -5,10 +5,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Random;
 
-/**
- * Simulates an AI prediction engine that calculates overheat risk
- * and generates cooling optimization recommendations.
- */
 @Service
 public class AiPredictionService {
 
@@ -20,7 +16,6 @@ public class AiPredictionService {
             "Rack 04B", "Rack 07A", "Rack 12C", "Rack 02D", "Rack 09F", "Rack 15A", "Rack 18E"
     );
 
-    // Sigmoid-like probability curve between warning and critical thresholds
     public double calculateOverheatProbability(double currentTemp) {
         if (currentTemp >= CRITICAL_THRESHOLD) return 0.97;
         if (currentTemp >= WARNING_THRESHOLD) {

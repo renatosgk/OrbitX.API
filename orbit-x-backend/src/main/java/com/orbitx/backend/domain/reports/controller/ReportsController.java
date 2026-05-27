@@ -19,7 +19,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 @RestController
 @RequestMapping("/api/v1/reports")
 @RequiredArgsConstructor
-@Tag(name = "Reports & ESG", description = "Sustainability scoring, ESG metrics, and PDF export")
+@Tag(name = "Relatórios & ESG", description = "Pontuação de sustentabilidade, métricas ESG e exportação PDF")
 @SecurityRequirement(name = "BearerAuth")
 public class ReportsController {
 
@@ -27,8 +27,8 @@ public class ReportsController {
 
     @GetMapping("/sustainability-score")
     @Operation(
-            summary = "Get ESG sustainability score",
-            description = "Returns the current ESG score (0-100), carbon offset, energy savings, and a before/after comparison of Orbit X activation. Cached for 5 minutes."
+            summary = "Obter pontuação de sustentabilidade ESG",
+            description = "Retorna a pontuação ESG atual (0-100), offset de carbono, economia de energia e comparativo antes/depois da ativação do Orbit X. Cache de 5 minutos."
     )
     public ResponseEntity<EntityModel<SustainabilityScoreResponse>> getSustainabilityScore() {
         EntityModel<SustainabilityScoreResponse> model = EntityModel.of(
@@ -43,8 +43,8 @@ public class ReportsController {
 
     @GetMapping("/export/pdf")
     @Operation(
-            summary = "Export executive PDF report",
-            description = "Generates and downloads an executive sustainability report. In production, integrate iText or JasperReports."
+            summary = "Exportar relatório executivo em PDF",
+            description = "Gera e faz download de um relatório executivo de sustentabilidade. Em produção, integre iText ou JasperReports."
     )
     public ResponseEntity<byte[]> exportPdf() {
         byte[] content = reportsService.exportPdfReport();

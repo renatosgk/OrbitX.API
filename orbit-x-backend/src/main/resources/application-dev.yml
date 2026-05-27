@@ -1,5 +1,3 @@
-# Perfil de desenvolvimento — mesmo Oracle da FIAP
-# ddl-auto=update garante que tabelas sejam criadas automaticamente
 spring:
   jpa:
     show-sql: true

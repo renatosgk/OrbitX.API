@@ -27,7 +27,7 @@ public class InfrastructureService {
 
     @Cacheable(value = CacheConfig.CACHE_DATACENTERS, key = "'all'")
     public List<DatacenterResponse> getAllDatacenters() {
-        log.debug("Cache MISS — loading datacenters from DB + telemetry");
+        log.debug("Cache MISS — carregando datacenters do banco + telemetria");
         return datacenterRepository.findByActiveTrue().stream()
                 .map(dc -> DatacenterResponse.from(
                         dc, telemetry.generateTemperatureForLocation(dc.getLatitude())))
@@ -36,7 +36,7 @@ public class InfrastructureService {
 
     @Cacheable(value = CacheConfig.CACHE_SATELLITES, key = "'all'")
     public List<SatelliteResponse> getAllActiveSatellites() {
-        log.debug("Cache MISS — computing orbital positions");
+        log.debug("Cache MISS — calculando posições orbitais");
         return satelliteRepository.findByActiveTrue().stream()
                 .map(orbitalMonitoring::buildSatelliteResponse)
                 .toList();
@@ -45,12 +45,12 @@ public class InfrastructureService {
     @Scheduled(fixedDelay = 15_000)
     @CacheEvict(value = CacheConfig.CACHE_SATELLITES, allEntries = true)
     public void evictSatelliteCache() {
-        log.debug("Satellite cache evicted (scheduled 15s)");
+        log.debug("Cache de satélites expirado (agendado 15s)");
     }
 
     @Scheduled(fixedDelay = 30_000)
     @CacheEvict(value = CacheConfig.CACHE_DATACENTERS, allEntries = true)
     public void evictDatacenterCache() {
-        log.debug("Datacenter cache evicted (scheduled 30s)");
+        log.debug("Cache de datacenters expirado (agendado 30s)");
     }
 }

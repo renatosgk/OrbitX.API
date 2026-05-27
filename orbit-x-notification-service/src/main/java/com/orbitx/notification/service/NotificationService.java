@@ -11,17 +11,6 @@ import org.springframework.stereotype.Service;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
-/**
- * Handles dispatch of alert notifications.
- *
- * Supported channels:
- *  - Email (via Spring Mail / SMTP)
- *  - Webhook (Slack / PagerDuty / Teams) — HTTP POST via RestClient
- *  - In-app push (future: FCM via Firebase Admin SDK)
- *
- * The service is intentionally thin — it delegates formatting to templates
- * and dispatch to the mail sender. Business logic stays in the consumer.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -37,26 +26,26 @@ public class NotificationService {
             SimpleMailMessage mail = new SimpleMailMessage();
             mail.setTo(opsEmail);
             mail.setFrom("alerts@orbitx.io");
-            mail.setSubject("[Orbit X] %s Alert — %s".formatted(event.severity(), event.title()));
+            mail.setSubject("[Orbit X] Alerta %s — %s".formatted(event.severity(), event.title()));
             mail.setText(buildEmailBody(event));
             mailSender.send(mail);
-            log.info("Email alert sent — eventId={} severity={}", event.eventId(), event.severity());
+            log.info("Alerta por e-mail enviado — eventId={} severidade={}", event.eventId(), event.severity());
         } catch (Exception ex) {
-            log.error("Failed to send email for eventId={}: {}", event.eventId(), ex.getMessage());
+            log.error("Falha ao enviar e-mail para eventId={}: {}", event.eventId(), ex.getMessage());
         }
     }
 
     public void logThermalCritical(AlertEvent event) {
-        // In production: POST to Slack webhook, PagerDuty, OpsGenie, etc.
+        
         log.error("""
                 ┌─────────────────────────────────────────────────┐
-                │           ORBIT X — THERMAL CRITICAL            │
+                │           ORBIT X — CRÍTICO TÉRMICO             │
                 ├─────────────────────────────────────────────────┤
-                │  Event ID   : {}
-                │  Temperature: {} °C
-                │  Risk       : {}%%
-                │  Message    : {}
-                │  Occurred   : {}
+                │  ID do Evento  : {}
+                │  Temperatura   : {} °C
+                │  Risco         : {}%%
+                │  Mensagem      : {}
+                │  Ocorrido em   : {}
                 └─────────────────────────────────────────────────┘
                 """,
                 event.eventId(),
@@ -74,23 +63,23 @@ public class NotificationService {
                         .format(event.occurredAt())
                 : "N/A";
         return """
-                Orbit X — Intelligent Datacenter Alert
-                ═══════════════════════════════════════
+                Orbit X — Alerta Inteligente de Datacenter
+                ═══════════════════════════════════════════
 
-                Severity    : %s
-                Title       : %s
-                Source      : %s
-                Datacenter  : %s
-                Temperature : %.1f °C
-                Risk Level  : %.1f%%
-                Occurred At : %s (UTC)
+                Severidade   : %s
+                Título       : %s
+                Origem       : %s
+                Datacenter   : %s
+                Temperatura  : %.1f °C
+                Nível de Risco: %.1f%%
+                Ocorrido em  : %s (UTC)
 
-                Message:
+                Mensagem:
                 %s
 
-                ───────────────────────────────────────
-                Orbit X AI Monitoring Engine
-                This is an automated alert. Do not reply.
+                ───────────────────────────────────────────
+                Motor de Monitoramento IA — Orbit X
+                Este é um alerta automático. Não responda.
                 """.formatted(
                 event.severity(),
                 event.title(),

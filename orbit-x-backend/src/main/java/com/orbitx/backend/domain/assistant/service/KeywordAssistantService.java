@@ -15,11 +15,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Offline/dev fallback assistant — active when OPENAI_API_KEY is not configured.
- * Uses keyword matching + live telemetry to produce contextually accurate responses.
- * No external API calls required.
- */
 @Slf4j
 @Service
 @ConditionalOnMissingBean(SpringAiAssistantService.class)
@@ -34,7 +29,7 @@ public class KeywordAssistantService implements AssistantPort {
 
     @Override
     public ChatResponse chat(ChatRequest request) {
-        log.debug("KeywordAssistantService handling chat (Spring AI not configured)");
+        log.debug("KeywordAssistantService processando chat (Spring AI não configurado)");
         double temp         = telemetry.generateCurrentTemperature();
         double energy       = telemetry.generateEnergyConsumption();
         double pue          = telemetry.generatePue();
@@ -133,11 +128,11 @@ public class KeywordAssistantService implements AssistantPort {
             """;
 
     private static final String FORMAT_DEFAULT = """
-            Orbit X AI Assistant — Offline Mode
+            Orbit X AI Assistant — Modo Offline
 
             Posso ajudar com:  🌡️ Térmica  ⚡ Energia  🌍 ESG  🛰️ Satélites  🚨 Alertas
 
-            Dica: Configure OPENAI_API_KEY para ativar o modo AI completo com RAG e Tool Calling.
+            Dica: Configure OPENAI_API_KEY para ativar o modo IA completo com RAG e Chamada de Ferramentas.
             """;
 
     private boolean containsAny(String input, String... keywords) {

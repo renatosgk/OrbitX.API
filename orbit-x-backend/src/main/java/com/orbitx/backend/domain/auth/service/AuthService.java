@@ -37,23 +37,23 @@ public class AuthService {
         );
 
         User user = userRepository.findByEmailWithCompany(request.email())
-                .orElseThrow(() -> new OrbitXException("User not found"));
+                .orElseThrow(() -> new OrbitXException("Usuário não encontrado"));
 
         user.setLastLogin(Instant.now());
         userRepository.save(user);
 
         String token = jwtService.generateToken(buildClaims(user), user);
-        log.info("User authenticated: {}", user.getEmail());
+        log.info("Usuário autenticado: {}", user.getEmail());
         return AuthResponse.of(token, jwtService.getExpirationMillis(), UserProfileDto.from(user));
     }
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
-            throw new OrbitXException("Email already registered: " + request.email());
+            throw new OrbitXException("E-mail já cadastrado: " + request.email());
         }
         if (companyRepository.existsByTaxId(request.taxId())) {
-            throw new OrbitXException("Company already registered with Tax ID: " + request.taxId());
+            throw new OrbitXException("Empresa já cadastrada com o CNPJ: " + request.taxId());
         }
 
         Company company = companyRepository.save(
@@ -75,17 +75,17 @@ public class AuthService {
         );
 
         String token = jwtService.generateToken(buildClaims(user), user);
-        log.info("New enterprise account registered: {} / {}", request.companyName(), request.email());
+        log.info("Nova conta empresarial registrada: {} / {}", request.companyName(), request.email());
         return AuthResponse.of(token, jwtService.getExpirationMillis(), UserProfileDto.from(user));
     }
 
     public Map<String, String> forgotPassword(ForgotPasswordRequest request) {
-        // Always return a generic message to prevent email enumeration attacks
+        
         boolean exists = userRepository.existsByEmail(request.email());
-        log.info("Password reset requested for: {} (exists={})", request.email(), exists);
+        log.info("Recuperação de senha solicitada para: {} (existe={})", request.email(), exists);
 
         return Map.of(
-                "message", "If this email is registered, a recovery link has been sent.",
+                "message", "Se este e-mail estiver cadastrado, um link de recuperação foi enviado.",
                 "requestId", "reset-" + System.currentTimeMillis()
         );
     }

@@ -12,11 +12,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Context-aware assistant engine.
- * Matches keywords in the user message and injects live telemetry into the response,
- * simulating a premium enterprise AI assistant.
- */
 @Service
 @RequiredArgsConstructor
 public class AssistantService {
@@ -154,7 +149,6 @@ public class AssistantService {
                     """;
         }
 
-        // Default: onboarding response
         return """
                 Orbit X AI Assistant — v2.1  |  Powered by Orbit X Engine
 
@@ -187,7 +181,6 @@ public class AssistantService {
         history.add(new ChatMessage("user", request.message()));
         history.add(new ChatMessage("assistant", responseText));
 
-        // Sliding window — keep last N messages to avoid payload bloat
         if (history.size() > MAX_HISTORY_SIZE) {
             history = history.subList(history.size() - MAX_HISTORY_SIZE, history.size());
         }

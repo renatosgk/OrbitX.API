@@ -27,8 +27,8 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(apiInfo())
                 .servers(List.of(
-                        new Server().url("http://localhost:" + serverPort).description("Local Development"),
-                        new Server().url("https://api.orbitx.io").description("Production")
+                        new Server().url("http://localhost:" + serverPort).description("Desenvolvimento Local"),
+                        new Server().url("https://api.orbitx.io").description("Produção")
                 ))
                 .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
                 .components(new Components()
@@ -41,21 +41,21 @@ public class SwaggerConfig {
                 .title("Orbit X API")
                 .version("1.0.0")
                 .description("""
-                        **Orbit X** — Intelligent Monitoring Platform for Sustainable Datacenters.
+                        **Orbit X** — Plataforma de Monitoramento Inteligente para Datacenters Sustentáveis.
 
-                        Provides real-time telemetry, AI-powered predictions, orbital satellite tracking,
-                        ESG reporting, and a context-aware AI assistant powered by Spring AI.
+                        Fornece telemetria em tempo real, predições baseadas em IA, rastreamento de satélites orbitais,
+                        relatórios ESG e um assistente de IA contextual desenvolvido com Spring AI.
 
-                        **Authentication**: Use `POST /api/v1/auth/login` to obtain a Bearer token,
-                        then click **Authorize** and enter `Bearer <your-token>`.
+                        **Autenticação**: Use `POST /api/v1/auth/login` para obter um token Bearer,
+                        depois clique em **Authorize** e informe `Bearer <seu-token>`.
                         """)
                 .contact(new Contact()
-                        .name("Orbit X Engineering")
+                        .name("Orbit X Engenharia")
                         .email("api@orbitx.io")
                         .url("https://orbitx.io"))
                 .license(new License()
-                        .name("Proprietary")
-                        .url("https://orbitx.io/terms"));
+                        .name("Proprietário")
+                        .url("https://orbitx.io/termos"));
     }
 
     private SecurityScheme jwtSecurityScheme() {
@@ -64,6 +64,6 @@ public class SwaggerConfig {
                 .scheme("bearer")
                 .bearerFormat("JWT")
                 .name(SECURITY_SCHEME_NAME)
-                .description("Insert the JWT token obtained from POST /api/v1/auth/login");
+                .description("Informe o token JWT obtido em POST /api/v1/auth/login");
     }
 }

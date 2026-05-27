@@ -8,7 +8,7 @@ spring:
     password: ${RABBITMQ_PASS:guest}
     listener:
       simple:
-        acknowledge-mode: manual     # Manual ACK — only ACK after processing succeeds
+        acknowledge-mode: manual
         prefetch: 10
         retry:
           enabled: true

@@ -20,7 +20,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 @RestController
 @RequestMapping("/api/v1/infrastructure")
 @RequiredArgsConstructor
-@Tag(name = "Infrastructure", description = "Global datacenters and orbital satellite network")
+@Tag(name = "Infraestrutura", description = "Datacenters globais e rede de satélites orbitais")
 @SecurityRequirement(name = "BearerAuth")
 public class InfrastructureController {
 
@@ -28,8 +28,8 @@ public class InfrastructureController {
 
     @GetMapping("/datacenters")
     @Operation(
-            summary = "List all datacenters",
-            description = "Returns the global datacenter fleet with live thermal state and energy metrics. Cached for 30 seconds."
+            summary = "Listar todos os datacenters",
+            description = "Retorna a frota global de datacenters com estado térmico ao vivo e métricas de energia. Cache de 30 segundos."
     )
     public ResponseEntity<CollectionModel<EntityModel<DatacenterResponse>>> getDatacenters() {
         List<EntityModel<DatacenterResponse>> items = infrastructureService.getAllDatacenters()
@@ -52,8 +52,8 @@ public class InfrastructureController {
 
     @GetMapping("/satellites")
     @Operation(
-            summary = "List active satellites",
-            description = "Returns real-time orbital positions, speed, and signal strength for all Orbit X satellites. Cached for 15 seconds."
+            summary = "Listar satélites ativos",
+            description = "Retorna posições orbitais, velocidade e intensidade de sinal em tempo real de todos os satélites Orbit X. Cache de 15 segundos."
     )
     public ResponseEntity<CollectionModel<EntityModel<SatelliteResponse>>> getSatellites() {
         List<EntityModel<SatelliteResponse>> items = infrastructureService.getAllActiveSatellites()

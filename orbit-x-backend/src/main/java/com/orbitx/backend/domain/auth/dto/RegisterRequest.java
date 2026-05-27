@@ -6,22 +6,22 @@ import jakarta.validation.constraints.Size;
 
 public record RegisterRequest(
 
-        @NotBlank(message = "Company name is required")
-        @Size(min = 2, max = 100, message = "Company name must be between 2 and 100 characters")
+        @NotBlank(message = "O nome da empresa é obrigatório")
+        @Size(min = 2, max = 100, message = "O nome da empresa deve ter entre 2 e 100 caracteres")
         String companyName,
 
-        @NotBlank(message = "Tax ID (CNPJ) is required")
+        @NotBlank(message = "O CNPJ é obrigatório")
         String taxId,
 
-        @NotBlank(message = "Admin name is required")
-        @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
+        @NotBlank(message = "O nome do administrador é obrigatório")
+        @Size(min = 2, max = 100, message = "O nome deve ter entre 2 e 100 caracteres")
         String adminName,
 
-        @NotBlank(message = "Email is required")
-        @Email(message = "Must be a valid email address")
+        @NotBlank(message = "O e-mail é obrigatório")
+        @Email(message = "Informe um endereço de e-mail válido")
         String email,
 
-        @NotBlank(message = "Password is required")
-        @Size(min = 8, message = "Password must be at least 8 characters")
+        @NotBlank(message = "A senha é obrigatória")
+        @Size(min = 8, message = "A senha deve ter no mínimo 8 caracteres")
         String password
 ) {}

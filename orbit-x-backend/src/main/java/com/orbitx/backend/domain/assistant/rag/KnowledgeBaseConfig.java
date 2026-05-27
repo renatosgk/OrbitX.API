@@ -5,22 +5,9 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Static knowledge provider for RAG (Retrieval-Augmented Generation).
- *
- * Por que estático em vez de VectorStore?
- *  - Groq (llama-3.3-70b) não expõe endpoint de embeddings.
- *  - A base de conhecimento é pequena e cabe no contexto (2K tokens).
- *  - Modelos Groq têm janela de 32K–128K tokens — sobra espaço.
- *  - Sem dependência de infraestrutura adicional (pgvector, Pinecone, etc.).
- *
- * Em produção com LLM que suporte embeddings (OpenAI, Cohere),
- * substitua por PgVectorStore + SearchRequest.builder().query(q).topK(5).build()
- */
 @Component
 public class KnowledgeBaseConfig {
 
-    /** Retorna os chunks mais relevantes baseado em overlap de palavras-chave */
     public String getRelevantContext(String userQuery) {
         String query = userQuery.toLowerCase();
         StringBuilder context = new StringBuilder();
@@ -38,7 +25,6 @@ public class KnowledgeBaseConfig {
                 : context.toString().trim();
     }
 
-    /** Contexto geral injetado quando nenhum chunk específico é relevante */
     public String getGeneralContext() {
         return """
                 Orbit X é uma plataforma de monitoramento inteligente para datacenters sustentáveis.
@@ -48,7 +34,6 @@ public class KnowledgeBaseConfig {
                 """;
     }
 
-    /** Base de conhecimento estática organizada por palavras-chave → conteúdo */
     private static final Map<List<String>, String> KNOWLEDGE_BASE = Map.of(
 
             List.of("pue", "energia", "energy", "eficiência", "consumo", "kwh", "watt"),

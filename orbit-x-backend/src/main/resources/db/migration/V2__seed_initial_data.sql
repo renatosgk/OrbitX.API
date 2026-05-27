@@ -1,9 +1,3 @@
--- ============================================================
---  Orbit X Platform — Flyway V2 — Seed initial fleet data
---  Safe to re-inspect: inserts are guarded by NOT EXISTS.
--- ============================================================
-
--- ── Datacenters ────────────────────────────────────────────────
 INSERT INTO datacenters (name, city, country, latitude, longitude, thermal_state, regional_consumption_kwh, capacity_servers, active)
 SELECT 'Orbit X - Sao Paulo Alpha', 'Sao Paulo', 'Brazil', -23.5505, -46.6333, 'STABLE', 18500.00, 4200, 1
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM datacenters WHERE name = 'Orbit X - Sao Paulo Alpha');
@@ -28,7 +22,6 @@ INSERT INTO datacenters (name, city, country, latitude, longitude, thermal_state
 SELECT 'Orbit X - London Core', 'London', 'United Kingdom', 51.5074, -0.1278, 'STABLE', 20400.00, 5600, 1
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM datacenters WHERE name = 'Orbit X - London Core');
 
--- ── Satellites ─────────────────────────────────────────────────
 INSERT INTO satellites (name, orbit_type, altitude_km, inclination_deg, orbital_period_min, data_link_status, active, launched_at)
 SELECT 'OX-SAT-01 Atlas', 'LEO', 550.0, 53.0, 95.5, 'ACTIVE', 1, TIMESTAMP '2023-03-15 10:00:00'
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM satellites WHERE name = 'OX-SAT-01 Atlas');

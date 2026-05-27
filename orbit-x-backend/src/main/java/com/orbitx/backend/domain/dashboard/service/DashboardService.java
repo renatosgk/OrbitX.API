@@ -26,10 +26,6 @@ public class DashboardService {
     private final AlertRepository           alertRepository;
     private final AlertEventPublisher       alertPublisher;
 
-    /**
-     * KPIs are NEVER cached — they represent the current second's state.
-     * If overheat risk is high, publishes a thermal event to RabbitMQ.
-     */
     public KpiResponse getKpis() {
         double temperature   = telemetry.generateCurrentTemperature();
         double energyKwh     = telemetry.generateEnergyConsumption();
@@ -40,7 +36,6 @@ public class DashboardService {
         String optimizationMode   = aiPrediction.resolveOptimizationMode(temperature, pue);
         DatacenterStatus status   = resolveStatus(temperature, pue, overheatProb);
 
-        // Publish thermal event when risk crosses CRITICAL threshold
         if (overheatProb >= 0.70) {
             publishThermalAlert(temperature, overheatProb, recommendation);
         }
@@ -66,16 +61,16 @@ public class DashboardService {
 
     private void publishThermalAlert(double temp, double prob, String recommendation) {
         AlertEvent event = AlertEvent.of(
-                "Critical Thermal Risk Detected",
+                "Risco Térmico Crítico Detectado",
                 recommendation,
                 AlertSeverity.CRITICAL,
                 "AI_ENGINE",
-                null,  // datacenter resolved at consumer level
+                null,
                 temp,
                 prob
         );
         alertPublisher.publishThermalCritical(event);
-        log.warn("Thermal critical event published — temp={}°C prob={}%", temp,
+        log.warn("Evento crítico térmico publicado — temp={}°C prob={}%", temp,
                 Math.round(prob * 100));
     }
 
@@ -87,24 +82,23 @@ public class DashboardService {
                               : temp >= 26.0 ? AlertSeverity.HIGH
                               : AlertSeverity.MEDIUM;
 
-        // Publish if HIGH or above
         if (sev == AlertSeverity.CRITICAL || sev == AlertSeverity.HIGH) {
             alertPublisher.publishAlert(AlertEvent.of(
-                    "AI Thermal Analysis", recommendation, sev,
+                    "Análise Térmica IA", recommendation, sev,
                     "AI_ENGINE", 1L, temp,
                     aiPrediction.calculateOverheatProbability(temp)
             ));
         }
 
         return List.of(
-                new AlertResponse(1L, "AI Thermal Analysis", recommendation,
+                new AlertResponse(1L, "Análise Térmica IA", recommendation,
                         sev, "AI_ENGINE", 1L, false, Instant.now()),
-                new AlertResponse(2L, "PUE Efficiency Monitor",
-                        "Current PUE: %.3f — Baseline: 1.200. Δ: +%.3f".formatted(pue, pue - 1.2),
+                new AlertResponse(2L, "Monitor de Eficiência PUE",
+                        "PUE atual: %.3f — Linha de base: 1.200. Δ: +%.3f".formatted(pue, pue - 1.2),
                         AlertSeverity.LOW, "ENERGY_MONITOR", null, false,
                         Instant.now().minusSeconds(300)),
-                new AlertResponse(3L, "Carbon Emission Update",
-                        "Renewable energy mix at 63.4% this cycle. Carbon offset on track.",
+                new AlertResponse(3L, "Atualização de Emissão de Carbono",
+                        "Mix de energia renovável em 63,4% neste ciclo. Compensação de carbono no prazo.",
                         AlertSeverity.LOW, "ESG_MODULE", null, false,
                         Instant.now().minusSeconds(900))
         );

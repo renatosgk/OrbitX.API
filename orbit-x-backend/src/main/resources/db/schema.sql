@@ -1,20 +1,9 @@
--- ============================================================
---  Orbit X Platform — Oracle Schema  (v1.0.0)
---  Usuário: rm559810 | Host: oracle.fiap.com.br:1521:ORCL
---
---  NOTA: Com ddl-auto=update o Hibernate gera as tabelas
---  automaticamente. Use este script apenas para referência
---  ou para criar manualmente no SQL*Plus / SQL Developer.
--- ============================================================
-
--- ── Sequences (Hibernate usa automaticamente com OracleDialect) ──
 CREATE SEQUENCE companies_seq START WITH 1 INCREMENT BY 50;
 CREATE SEQUENCE users_seq     START WITH 1 INCREMENT BY 50;
 CREATE SEQUENCE datacenters_seq START WITH 1 INCREMENT BY 50;
 CREATE SEQUENCE satellites_seq  START WITH 1 INCREMENT BY 50;
 CREATE SEQUENCE alerts_seq      START WITH 1 INCREMENT BY 50;
 
--- ── Companies ─────────────────────────────────────────────────────
 CREATE TABLE companies (
     id          NUMBER(19)    DEFAULT companies_seq.NEXTVAL PRIMARY KEY,
     name        VARCHAR2(100) NOT NULL,
@@ -26,7 +15,6 @@ CREATE TABLE companies (
     CONSTRAINT uq_companies_tax_id UNIQUE (tax_id)
 );
 
--- ── Users ──────────────────────────────────────────────────────────
 CREATE TABLE users (
     id          NUMBER(19)    DEFAULT users_seq.NEXTVAL PRIMARY KEY,
     name        VARCHAR2(100) NOT NULL,
@@ -46,7 +34,6 @@ CREATE TABLE users (
 CREATE INDEX idx_users_email   ON users (email);
 CREATE INDEX idx_users_company ON users (company_id);
 
--- ── Datacenters ────────────────────────────────────────────────────
 CREATE TABLE datacenters (
     id                       NUMBER(19)       DEFAULT datacenters_seq.NEXTVAL PRIMARY KEY,
     name                     VARCHAR2(150)    NOT NULL,
@@ -62,7 +49,6 @@ CREATE TABLE datacenters (
     created_at               TIMESTAMP        DEFAULT SYSTIMESTAMP NOT NULL
 );
 
--- ── Satellites ─────────────────────────────────────────────────────
 CREATE TABLE satellites (
     id                  NUMBER(19)       DEFAULT satellites_seq.NEXTVAL PRIMARY KEY,
     name                VARCHAR2(100)    NOT NULL,
@@ -77,7 +63,6 @@ CREATE TABLE satellites (
     CONSTRAINT uq_satellites_name UNIQUE (name)
 );
 
--- ── Alerts ─────────────────────────────────────────────────────────
 CREATE TABLE alerts (
     id               NUMBER(19)    DEFAULT alerts_seq.NEXTVAL PRIMARY KEY,
     title            VARCHAR2(200) NOT NULL,
@@ -93,4 +78,4 @@ CREATE TABLE alerts (
 
 CREATE INDEX idx_alerts_resolved   ON alerts (resolved, created_at DESC);
 CREATE INDEX idx_alerts_datacenter ON alerts (datacenter_id);
-CREATE INDEX idx_alerts_severity   ON alerts (severity) WHERE resolved = 0; -- parcial (Oracle 11g+)
+CREATE INDEX idx_alerts_severity   ON alerts (severity) WHERE resolved = 0;

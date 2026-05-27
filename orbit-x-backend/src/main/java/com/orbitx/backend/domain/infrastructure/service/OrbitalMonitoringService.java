@@ -9,15 +9,10 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.Random;
 
-/**
- * Computes real-time satellite positions using simplified circular orbital mechanics.
- * Phase angle is derived from current epoch time and each satellite's orbital period,
- * producing smoothly moving lat/lng coordinates suitable for map rendering.
- */
 @Service
 public class OrbitalMonitoringService {
 
-    private static final double MU_KM3_S2 = 398600.4418; // Earth gravitational parameter
+    private static final double MU_KM3_S2 = 398600.4418; 
     private static final double EARTH_RADIUS_KM = 6371.0;
     private static final Random RANDOM = new Random();
 
@@ -43,14 +38,11 @@ public class OrbitalMonitoringService {
         long epochSeconds    = Instant.now().getEpochSecond();
         double periodSeconds = satellite.getOrbitalPeriodMin() * 60.0;
 
-        // Angular phase in radians based on elapsed time
         double phase = (2.0 * Math.PI * (epochSeconds % (long) periodSeconds)) / periodSeconds;
 
-        // Longitude sweeps full 360° over one period
         double longitude = Math.toDegrees(phase) % 360.0;
         if (longitude > 180.0) longitude -= 360.0;
 
-        // Latitude oscillates between ±inclination following the ground track
         double latitude = satellite.getInclinationDeg() * Math.sin(phase);
         latitude = Math.max(-90.0, Math.min(90.0, latitude));
 
@@ -60,7 +52,6 @@ public class OrbitalMonitoringService {
         );
     }
 
-    // Vis-viva simplification for circular orbit: v = sqrt(µ / r)
     private double calculateOrbitalSpeed(double altitudeKm) {
         double radius    = EARTH_RADIUS_KM + altitudeKm;
         double speedKmS  = Math.sqrt(MU_KM3_S2 / radius);

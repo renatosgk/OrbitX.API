@@ -17,22 +17,22 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
-        log.warn("Resource not found: {}", ex.getMessage());
+        log.warn("Recurso não encontrado: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ErrorResponse.of(404, "Not Found", ex.getMessage()));
+                .body(ErrorResponse.of(404, "Não Encontrado", ex.getMessage()));
     }
 
     @ExceptionHandler(OrbitXException.class)
     public ResponseEntity<ErrorResponse> handleOrbitXException(OrbitXException ex) {
-        log.warn("Business rule violation: {}", ex.getMessage());
+        log.warn("Violação de regra de negócio: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse.of(400, "Bad Request", ex.getMessage()));
+                .body(ErrorResponse.of(400, "Requisição Inválida", ex.getMessage()));
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ErrorResponse.of(401, "Unauthorized", "Invalid email or password"));
+                .body(ErrorResponse.of(401, "Não Autorizado", "E-mail ou senha inválidos"));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -42,13 +42,13 @@ public class GlobalExceptionHandler {
                 .map(FieldError::getDefaultMessage)
                 .toList();
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(ErrorResponse.of(422, "Validation Failed", "Invalid request payload", details));
+                .body(ErrorResponse.of(422, "Falha na Validação", "Payload da requisição inválido", details));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
-        log.error("Unhandled exception", ex);
+        log.error("Exceção não tratada", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ErrorResponse.of(500, "Internal Server Error", "An unexpected error occurred"));
+                .body(ErrorResponse.of(500, "Erro Interno do Servidor", "Ocorreu um erro inesperado"));
     }
 }

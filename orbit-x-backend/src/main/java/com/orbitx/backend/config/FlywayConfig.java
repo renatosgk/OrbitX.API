@@ -6,13 +6,6 @@ import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Flyway strategy: repair() before migrate().
- *
- * On Oracle (non-transactional DDL), a failed migration leaves a FAILED
- * entry in flyway_schema_history.  repair() removes that entry so the
- * fixed script can be re-applied on the next startup.
- */
 @Slf4j
 @Configuration
 public class FlywayConfig {
@@ -20,7 +13,7 @@ public class FlywayConfig {
     @Bean
     public FlywayMigrationStrategy repairThenMigrate() {
         return (Flyway flyway) -> {
-            log.info("Flyway: running repair() before migrate() to clear any failed migration entries");
+            log.info("Flyway: executando repair() antes do migrate() para limpar entradas de migração com falha");
             flyway.repair();
             flyway.migrate();
         };

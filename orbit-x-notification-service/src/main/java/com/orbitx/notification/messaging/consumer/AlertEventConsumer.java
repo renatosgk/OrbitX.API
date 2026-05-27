@@ -12,18 +12,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-/**
- * RabbitMQ consumers for Orbit X alert events.
- *
- * Two consumers with Manual ACK:
- *  1. alertsConsumer  — general HIGH/CRITICAL alerts → email dispatch
- *  2. thermalConsumer — thermal threshold breaches → immediate ops notification
- *
- * Why manual ACK?
- *  - Ensures the message is only acknowledged after successful processing.
- *  - If email fails, the message is NACK'd and re-queued (up to 3 retries per RabbitMQConfig).
- *  - Prevents silent loss of critical alerts.
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -38,14 +26,14 @@ public class AlertEventConsumer {
     public void consumeAlert(AlertEvent event,
                              Channel channel,
                              @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) throws IOException {
-        log.info("Alert event received — id={} severity={}", event.eventId(), event.severity());
+        log.info("Evento de alerta recebido — id={} severidade={}", event.eventId(), event.severity());
         try {
             notificationService.sendEmailAlert(event);
             channel.basicAck(deliveryTag, false);
-            log.debug("Alert event ACK'd — id={}", event.eventId());
+            log.debug("Evento de alerta confirmado (ACK) — id={}", event.eventId());
         } catch (Exception ex) {
-            log.error("Processing failed for event id={} — re-queuing: {}", event.eventId(), ex.getMessage());
-            // requeue=false: sends to DLX after max retry exhaustion
+            log.error("Falha ao processar evento id={} — reenfileirando: {}", event.eventId(), ex.getMessage());
+            
             channel.basicNack(deliveryTag, false, false);
         }
     }
@@ -53,12 +41,12 @@ public class AlertEventConsumer {
     @RabbitListener(
             queues    = "${orbitx.messaging.thermal-queue}",
             ackMode   = "MANUAL",
-            concurrency = "2"  // parallel consumers for the high-priority thermal lane
+            concurrency = "2"  
     )
     public void consumeThermalCritical(AlertEvent event,
                                        Channel channel,
                                        @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) throws IOException {
-        log.warn("THERMAL CRITICAL received — id={} temp={}°C prob={}%%",
+        log.warn("TÉRMICO CRÍTICO recebido — id={} temp={}°C prob={}%%",
                 event.eventId(),
                 event.currentTemperatureCelsius(),
                 Math.round(event.overheatProbability() * 100));
@@ -67,7 +55,7 @@ public class AlertEventConsumer {
             notificationService.sendEmailAlert(event);
             channel.basicAck(deliveryTag, false);
         } catch (Exception ex) {
-            log.error("Thermal consumer failed — id={}: {}", event.eventId(), ex.getMessage());
+            log.error("Falha no consumidor térmico — id={}: {}", event.eventId(), ex.getMessage());
             channel.basicNack(deliveryTag, false, false);
         }
     }

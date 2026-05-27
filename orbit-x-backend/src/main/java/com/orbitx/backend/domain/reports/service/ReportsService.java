@@ -30,7 +30,7 @@ public class ReportsService {
     }
 
     public byte[] exportPdfReport() {
-        // Stub: integrate iText / JasperReports / Flying Saucer in production
+        
         return buildReportContent().getBytes();
     }
 

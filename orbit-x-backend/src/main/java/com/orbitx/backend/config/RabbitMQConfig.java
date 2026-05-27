@@ -9,17 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * RabbitMQ topology for Orbit X.
- *
- * Exchange: orbitx.exchange  (Direct)
- *  ├── orbitx.alerts.queue   — routed by "alert.event"
- *  │     consumed by: orbit-x-notification-service
- *  ���── orbitx.thermal.queue  — routed by "thermal.critical"
- *        consumed by: orbit-x-notification-service (high-priority lane)
- *
- * Dead-letter exchange (DLX) captures undeliverable messages for audit.
- */
 @Configuration
 public class RabbitMQConfig {
 
@@ -41,8 +30,6 @@ public class RabbitMQConfig {
     private static final String DLX_EXCHANGE = "orbitx.dlx";
     private static final String DLX_QUEUE    = "orbitx.dead-letter.queue";
 
-    // ── Exchanges ──────────────────────────────────────────────────────────
-
     @Bean
     public DirectExchange orbitXExchange() {
         return ExchangeBuilder.directExchange(exchange).durable(true).build();
@@ -53,13 +40,11 @@ public class RabbitMQConfig {
         return ExchangeBuilder.fanoutExchange(DLX_EXCHANGE).durable(true).build();
     }
 
-    // ── Queues ─────────────────────────────────────────────────────────────
-
     @Bean
     public Queue alertsQueue() {
         return QueueBuilder.durable(alertsQueue)
                 .withArgument("x-dead-letter-exchange", DLX_EXCHANGE)
-                .withArgument("x-message-ttl", 86_400_000)  // 24 h
+                .withArgument("x-message-ttl", 86_400_000)  
                 .build();
     }
 
@@ -67,8 +52,8 @@ public class RabbitMQConfig {
     public Queue thermalQueue() {
         return QueueBuilder.durable(thermalQueue)
                 .withArgument("x-dead-letter-exchange", DLX_EXCHANGE)
-                .withArgument("x-priority", 10)  // high-priority queue
-                .withArgument("x-message-ttl", 3_600_000)   // 1 h
+                .withArgument("x-priority", 10)  
+                .withArgument("x-message-ttl", 3_600_000)   
                 .build();
     }
 
@@ -76,8 +61,6 @@ public class RabbitMQConfig {
     public Queue deadLetterQueue() {
         return QueueBuilder.durable(DLX_QUEUE).build();
     }
-
-    // ── Bindings ───────────────────────────────────────────────────────────
 
     @Bean
     public Binding alertsBinding() {
@@ -93,8 +76,6 @@ public class RabbitMQConfig {
     public Binding deadLetterBinding() {
         return BindingBuilder.bind(deadLetterQueue()).to(deadLetterExchange());
     }
-
-    // ── Serialization & Template ───────────────────────────────────────────
 
     @Bean
     public MessageConverter jsonMessageConverter() {

@@ -4,12 +4,6 @@ import com.orbitx.backend.domain.dashboard.entity.enums.AlertSeverity;
 
 import java.time.Instant;
 
-/**
- * Immutable event record published to RabbitMQ when a critical or high-severity
- * alert is detected by the AI monitoring engine.
- *
- * Consumed by: orbit-x-notification-service
- */
 public record AlertEvent(
         String eventId,
         String title,

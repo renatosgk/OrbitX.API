@@ -13,16 +13,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Spring AI Tool definitions.
- *
- * These methods are exposed to the LLM as callable tools during chat sessions.
- * The model decides autonomously when to invoke them based on the user's question.
- *
- * Patterns used:
- *  - Tool Calling (function calling): model invokes specific data retrieval methods
- *  - Data grounding: responses are always backed by live telemetry, not hallucinated
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -32,24 +22,24 @@ public class DatacenterTools {
     private final InfrastructureService infrastructureService;
 
     @Tool(description = """
-            Retrieves real-time KPIs from the Orbit X monitoring system.
-            Returns energy consumption (kWh), current temperature (°C), carbon emissions (tons),
-            Power Usage Effectiveness (PUE), overall status, and AI overheat prediction.
-            Call this when the user asks about current metrics, energy, temperature, or system status.
+            Busca os KPIs em tempo real do sistema de monitoramento Orbit X.
+            Retorna consumo de energia (kWh), temperatura atual (°C), emissões de carbono (toneladas),
+            Eficiência de Uso de Energia (PUE), status geral e previsão de superaquecimento pela IA.
+            Chame quando o usuário perguntar sobre métricas atuais, energia, temperatura ou status do sistema.
             """)
     public String getLiveKpis() {
-        log.debug("Tool invoked: getLiveKpis");
+        log.debug("Ferramenta invocada: getLiveKpis");
         KpiResponse kpi = dashboardService.getKpis();
         return """
-                LIVE KPIs — captured at %s
-                Energy Consumption : %.2f kWh
-                Temperature        : %.2f °C
-                Carbon Emissions   : %.4f tons CO2
+                KPIs AO VIVO — capturado em %s
+                Consumo de Energia : %.2f kWh
+                Temperatura        : %.2f °C
+                Emissões de Carbono: %.4f toneladas CO2
                 PUE                : %.3f
-                Overall Status     : %s
-                AI Overheat Risk   : %.1f%%
-                Recommendation     : %s
-                Optimization Mode  : %s
+                Status Geral       : %s
+                Risco Overheat IA  : %.1f%%
+                Recomendação       : %s
+                Modo de Otimização : %s
                 """.formatted(
                 kpi.capturedAt(),
                 kpi.energyConsumptionKwh(),
@@ -64,55 +54,55 @@ public class DatacenterTools {
     }
 
     @Tool(description = """
-            Returns the thermal status and energy consumption of all global datacenters
-            in the Orbit X network. Use when the user asks about specific locations,
-            datacenter health, regional consumption, or geographic distribution.
+            Retorna o estado térmico e o consumo de energia de todos os datacenters globais
+            da rede Orbit X. Use quando o usuário perguntar sobre localidades específicas,
+            saúde dos datacenters, consumo regional ou distribuição geográfica.
             """)
     public String getDatacenterStatus() {
-        log.debug("Tool invoked: getDatacenterStatus");
+        log.debug("Ferramenta invocada: getDatacenterStatus");
         List<DatacenterResponse> dcs = infrastructureService.getAllDatacenters();
         return dcs.stream()
-                .map(dc -> "%s (%s, %s) — Thermal: %s | %.2f kWh | %d servers | Temp: %.1f°C".formatted(
+                .map(dc -> "%s (%s, %s) — Térmico: %s | %.2f kWh | %d servidores | Temp: %.1f°C".formatted(
                         dc.name(), dc.city(), dc.country(),
                         dc.thermalState(),
                         dc.regionalConsumptionKwh(),
                         dc.capacityServers(),
                         dc.currentTemperatureCelsius()))
                 .collect(Collectors.joining("\n",
-                        "DATACENTERS (" + dcs.size() + " active):\n", ""));
+                        "DATACENTERS (" + dcs.size() + " ativos):\n", ""));
     }
 
     @Tool(description = """
-            Retrieves all active (unresolved) alerts from the AI monitoring engine.
-            Use when the user asks about alerts, warnings, risks, incidents, or anomalies.
+            Busca todos os alertas ativos (não resolvidos) do motor de monitoramento da IA.
+            Use quando o usuário perguntar sobre alertas, avisos, riscos, incidentes ou anomalias.
             """)
     public String getActiveAlerts() {
-        log.debug("Tool invoked: getActiveAlerts");
+        log.debug("Ferramenta invocada: getActiveAlerts");
         List<AlertResponse> alerts = dashboardService.getActiveAlerts();
-        if (alerts.isEmpty()) return "No active alerts — all systems nominal.";
+        if (alerts.isEmpty()) return "Nenhum alerta ativo — todos os sistemas nominais.";
         return alerts.stream()
-                .map(a -> "[%s] %s — %s (source: %s)".formatted(
+                .map(a -> "[%s] %s — %s (origem: %s)".formatted(
                         a.severity(), a.title(), a.message(), a.sourceComponent()))
                 .collect(Collectors.joining("\n",
-                        "ACTIVE ALERTS (" + alerts.size() + "):\n", ""));
+                        "ALERTAS ATIVOS (" + alerts.size() + "):\n", ""));
     }
 
     @Tool(description = """
-            Returns the current ESG sustainability score, energy savings, carbon offset,
-            renewable energy percentage, and a before/after comparison of Orbit X activation.
-            Use for questions about sustainability, ESG, green energy, carbon footprint, or environmental impact.
+            Retorna a pontuação ESG de sustentabilidade atual, economia de energia, offset de carbono,
+            percentual de energia renovável e comparativo antes/depois da ativação do Orbit X.
+            Use para perguntas sobre sustentabilidade, ESG, energia limpa, pegada de carbono ou impacto ambiental.
             """)
     public String getSustainabilityMetrics() {
-        log.debug("Tool invoked: getSustainabilityMetrics");
+        log.debug("Ferramenta invocada: getSustainabilityMetrics");
         return """
-                ESG SCORE: 87/100 (Grade: A+)
-                Energy Saved (accumulated): 287,450 kWh
-                Carbon Offset: 142.3 tons CO2eq
-                Renewable Energy Mix: 76.4%%
+                PONTUAÇÃO ESG: 87/100 (Nota: A+)
+                Energia Economizada (acumulada): 287.450 kWh
+                Compensação de Carbono: 142,3 toneladas CO2eq
+                Mix de Energia Renovável: 76,4%%
 
-                Before Orbit X → PUE: 1.82 | Carbon: 7.34 t/month | Cooling: 61.2%%
-                After  Orbit X → PUE: 1.27 | Carbon: 2.11 t/month | Cooling: 89.7%%
-                Improvement: 30.2%% PUE reduction | Top 5%% globally
+                Antes do Orbit X → PUE: 1,82 | Carbono: 7,34 t/mês | Resfriamento: 61,2%%
+                Após o Orbit X  → PUE: 1,27 | Carbono: 2,11 t/mês | Resfriamento: 89,7%%
+                Melhoria: redução de 30,2%% no PUE | Top 5%% mundial
                 """;
     }
 }

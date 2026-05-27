@@ -18,28 +18,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Spring AI assistant usando Groq (llama-3.3-70b-versatile via endpoint OpenAI-compatible).
- *
- * Padrões ativos:
- *  ┌─────────────────────────────────────────────────────────────────────┐
- *  │  RAG (Retrieval-Augmented Generation)                               │
- *  │    → KnowledgeBaseConfig.getRelevantContext() faz busca por         │
- *  │      palavras-chave nos chunks de domínio e injeta no system prompt │
- *  │      (sem VectorStore — Groq não suporta embeddings)               │
- *  │                                                                     │
- *  │  Tool Calling (@Tool)                                               │
- *  │    → O modelo decide autonomamente quando chamar getLiveKpis(),     │
- *  │      getDatacenterStatus(), getActiveAlerts(), getSustainabilityMetrics() │
- *  │                                                                     │
- *  │  MCP (Model Context Protocol)                                       │
- *  │    → System prompt estruturado com contexto do ecossistema          │
- *  │      Orbit X, regras de domínio e instruções de comportamento       │
- *  └─────────────────────────────────────────────────────────────────────┘
- *
- * Ativo quando: spring.ai.openai.api-key != "CONFIGURE_ME" (ou seja,
- * quando a chave Groq estiver configurada, que é o padrão atual).
- */
 @Slf4j
 @Service
 @ConditionalOnExpression("'${spring.ai.openai.api-key:}'.startsWith('gsk_')")
@@ -83,22 +61,20 @@ public class SpringAiAssistantService implements AssistantPort {
 
     @Override
     public ChatResponse chat(ChatRequest request) {
-        // ── 1. RAG: busca contexto relevante por keyword matching ──────────
+        
         String ragContext   = knowledgeBase.getRelevantContext(request.message());
         String systemPrompt = SYSTEM_PROMPT_TEMPLATE.replace("{rag_context}", ragContext);
 
-        // ── 2. Monta histórico de mensagens para multi-turn conversation ───
         List<Message> history = buildMessageHistory(request.history());
 
-        log.debug("Groq chat — model=llama-3.3-70b msg='{}' historySize={}",
+        log.debug("Groq chat — modelo=llama-3.3-70b msg='{}' histórico={}",
                 request.message(), history.size());
 
-        // ── 3. Chama Groq via Spring AI ChatClient com Tool Calling ────────
         String response = chatClient.prompt()
                 .system(systemPrompt)
                 .messages(history)
                 .user(request.message())
-                .tools(datacenterTools)          // Tool calling — LLM decide quando invocar
+                .tools(datacenterTools)          
                 .call()
                 .content();
 

@@ -10,15 +10,6 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.concurrent.TimeUnit;
 
-/**
- * Caffeine-backed in-process cache.
- *
- * Cache strategy:
- *  - satellites    : short TTL (15 s) — positions update every few seconds
- *  - datacenters   : medium TTL (30 s) — list changes rarely, temperatures fluctuate
- *  - sustainability: long TTL  (5 min) — ESG scores are near-static per session
- *  - kpis          : NOT cached — always real-time, served fresh per request
- */
 @Configuration
 @EnableCaching
 public class CacheConfig {

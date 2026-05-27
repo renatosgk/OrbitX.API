@@ -19,7 +19,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 @RestController
 @RequestMapping("/api/v1/assistant")
 @RequiredArgsConstructor
-@Tag(name = "AI Assistant", description = "Context-aware assistant with RAG + Tool Calling (Spring AI)")
+@Tag(name = "AI Assistant", description = "Assistente contextual com RAG + Tool Calling (Spring AI)")
 @SecurityRequirement(name = "BearerAuth")
 public class AssistantController {
 
@@ -27,18 +27,18 @@ public class AssistantController {
 
     @PostMapping("/chat")
     @Operation(
-            summary = "Chat with Orbit X AI",
+            summary = "Conversar com o Orbit X AI",
             description = """
-                    Sends a message to the Orbit X AI assistant.
+                    Envia uma mensagem ao assistente de IA do Orbit X.
 
-                    **When OPENAI_API_KEY is configured:** Uses Spring AI with GPT-4o-mini,
-                    RAG (vector similarity search on datacenter knowledge base), and Tool Calling
-                    (live KPIs, datacenter status, active alerts, sustainability metrics).
+                    **Com GROQ_API_KEY configurada:** Utiliza Spring AI com llama-3.3-70b via Groq,
+                    RAG (busca por palavras-chave na base de conhecimento de datacenters) e Tool Calling
+                    (KPIs ao vivo, status dos datacenters, alertas ativos, métricas de sustentabilidade).
 
-                    **Without API key:** Falls back to the offline keyword-matching engine
-                    with live telemetry injection.
+                    **Sem chave de API:** Utiliza o motor offline de correspondência por palavras-chave
+                    com injeção de telemetria ao vivo.
 
-                    The `history` field enables multi-turn conversations (sliding window of 20 messages).
+                    O campo `history` habilita conversas de múltiplos turnos (janela deslizante de 20 mensagens).
                     """
     )
     public ResponseEntity<EntityModel<ChatResponse>> chat(

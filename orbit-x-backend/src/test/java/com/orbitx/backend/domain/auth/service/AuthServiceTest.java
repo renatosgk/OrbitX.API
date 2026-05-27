@@ -94,6 +94,6 @@ class AuthServiceTest {
         var result = authService.forgotPassword(new ForgotPasswordRequest("ghost@orbitx.io"));
 
         assertThat(result).containsKey("message");
-        assertThat(result.get("message")).contains("recovery link");
+        assertThat(result.get("message")).contains("link de recuperação");
     }
 }
