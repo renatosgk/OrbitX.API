@@ -21,13 +21,14 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.OracleDialect
     hibernate:
-      # Flyway gerencia o schema — Hibernate apenas valida
-      ddl-auto: none
+      # update: cria tabelas faltantes sem dropar as existentes
+      ddl-auto: update
     show-sql: false
     open-in-view: false
     properties:
       hibernate:
         format_sql: false
+        default_schema: RM559810
         id:
           new_generator_mappings: true
 
@@ -40,8 +41,9 @@ spring:
     # cria o baseline em V1 e não re-executa a migration.
     baseline-on-migrate: true
     baseline-version: 1
-    validate-on-migrate: true
+    validate-on-migrate: false
     out-of-order: false
+    repair-on-migrate: true
 
   jackson:
     serialization:
@@ -68,7 +70,7 @@ spring:
   #   llama-3.1-8b-instant, mixtral-8x7b-32768, gemma2-9b-it
   ai:
     openai:
-      api-key: ${GROQ_API_KEY:}
+      api-key: ${GROQ_API_KEY:GROQ_KEY_NOT_CONFIGURED}
       base-url: https://api.groq.com/openai/v1
       chat:
         base-url: https://api.groq.com/openai/v1

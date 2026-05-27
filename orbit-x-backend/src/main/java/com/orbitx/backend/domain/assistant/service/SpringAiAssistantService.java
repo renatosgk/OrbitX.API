@@ -11,7 +11,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -42,12 +42,7 @@ import java.util.List;
  */
 @Slf4j
 @Service
-@ConditionalOnProperty(
-        name       = "spring.ai.openai.api-key",
-        matchIfMissing = false,
-        havingValue    = "CONFIGURE_ME",
-        negate         = true
-)
+@ConditionalOnExpression("'${spring.ai.openai.api-key:}'.startsWith('gsk_')")
 public class SpringAiAssistantService implements AssistantPort {
 
     private static final String MODEL_ID        = "orbit-x-ai-groq-llama3.3";

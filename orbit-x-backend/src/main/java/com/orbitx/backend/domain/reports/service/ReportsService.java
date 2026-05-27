@@ -36,9 +36,9 @@ public class ReportsService {
 
     private String buildReportContent() {
         return """
-                %PDF-1.4
-                %% Orbit X — Executive Sustainability Report
-                %% Generated: %s
+                %%PDF-1.4
+                %%%% Orbit X — Executive Sustainability Report
+                %%%% Generated: %s
 
                 ESG Score ......... 87 / 100  (Grade: A+)
                 Energy Saved ...... 287,450 kWh accumulated
