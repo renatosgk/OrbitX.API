@@ -470,9 +470,9 @@ Para testar endpoints protegidos:
 
 ## Integrantes do Grupo
 
-| Nome | RM |
-|---|---|
-| Renato Gomes Kuzuhara | RM559810 |
+| Nome                | RM |
+|---------------------|---|
+| Renato Kenji Sugaki | RM559810 |
 
 ---
 

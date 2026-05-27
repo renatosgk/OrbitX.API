@@ -7,6 +7,9 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: false
+    properties:
+      hibernate:
+        default_schema: ${DATABASE_SCHEMA:RM559810}
 
   flyway:
     enabled: true
@@ -14,10 +17,30 @@ spring:
 
   ai:
     openai:
-      api-key: ${GROQ_API_KEY}
+      api-key: ${GROQ_API_KEY:GROQ_KEY_NOT_CONFIGURED}
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
+
+management:
+  health:
+    rabbit:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
 
 logging:
   level:
     com.orbitx: INFO
     org.springframework.security: WARN
     org.hibernate.SQL: WARN
+    org.flywaydb: INFO
+    org.springframework.ai: WARN
