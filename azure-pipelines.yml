@@ -1,7 +1,7 @@
 trigger:
   - Teste-API-OrbitX
 pool:
-  vmImage: ubuntu-22.04
+  vmImage: ubuntu-latest
 stages:
   - stage: Build
     displayName: "Build e Push para ACR"
