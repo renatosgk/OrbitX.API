@@ -1,19 +1,20 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
-- main
-
+  - Teste-API-OrbitX
 pool:
-  vmImage: ubuntu-latest
-
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+  vmImage: ubuntu-22.04
+stages:
+  - stage: Build
+    displayName: "Build e Push para ACR"
+    jobs:
+      - job: BuildAndPush
+        steps:
+          - task: Docker@2
+            displayName: "Build e Push da imagem"
+            inputs:
+              containerRegistry: "javaapimssqlrm559366"
+              repository:        "javaapirp"
+              command:           "buildAndPush"
+              Dockerfile:        "**/Dockerfile"
+              tags: |
+                $(Build.BuildId)
+                latest
