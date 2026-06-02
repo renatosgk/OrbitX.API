@@ -19,7 +19,5 @@ services:
         value: true
       - key: RABBITMQ_ENABLED
         value: false
-      - key: MAIL_USERNAME
-        sync: false
-      - key: MAIL_PASSWORD
+      - key: RESEND_API_KEY
         sync: false

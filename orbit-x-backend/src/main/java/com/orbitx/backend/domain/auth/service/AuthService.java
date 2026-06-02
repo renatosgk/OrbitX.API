@@ -11,16 +11,17 @@ import com.orbitx.backend.shared.exception.OrbitXException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.security.SecureRandom;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -33,9 +34,12 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final JavaMailSender mailSender;
+    private final RestTemplate restTemplate;
 
-    @Value("${spring.mail.username}")
+    @Value("${orbitx.mail.resend-api-key:}")
+    private String resendApiKey;
+
+    @Value("${orbitx.mail.from}")
     private String fromEmail;
 
     @Transactional
@@ -104,7 +108,7 @@ public class AuthService {
     }
 
     private String generateTempPassword() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$!";
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#!";
         SecureRandom random = new SecureRandom();
         StringBuilder sb = new StringBuilder(10);
         for (int i = 0; i < 10; i++) {
@@ -114,22 +118,32 @@ public class AuthService {
     }
 
     private void sendTempPasswordEmail(String to, String name, String tempPassword) {
+        if (resendApiKey == null || resendApiKey.isBlank()) {
+            log.warn("RESEND_API_KEY não configurado — e-mail não enviado para {}", to);
+            return;
+        }
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(to);
-            message.setSubject("Orbit X — Sua senha temporária");
-            message.setText(
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(resendApiKey);
+
+            Map<String, Object> body = Map.of(
+                    "from", fromEmail,
+                    "to", List.of(to),
+                    "subject", "Orbit X — Sua senha temporária",
+                    "text",
                     "Olá, " + name + "!\n\n" +
-                    "Recebemos uma solicitação de redefinição de senha para sua conta Orbit X.\n\n" +
                     "Sua senha temporária é: " + tempPassword + "\n\n" +
                     "Use esta senha para fazer login e altere-a em seguida.\n\n" +
                     "Se você não solicitou esta redefinição, ignore este e-mail.\n\n" +
                     "— Equipe Orbit X"
             );
-            mailSender.send(message);
+
+            HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, headers);
+            restTemplate.postForEntity("https://api.resend.com/emails", req, Map.class);
+            log.info("E-mail enviado via Resend para: {}", to);
         } catch (Exception e) {
-            log.error("Falha ao enviar e-mail de recuperação para {}: {}", to, e.getMessage());
+            log.error("Falha ao enviar e-mail via Resend para {}: {}", to, e.getMessage());
         }
     }
 

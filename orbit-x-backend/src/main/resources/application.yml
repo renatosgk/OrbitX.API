@@ -43,21 +43,6 @@ spring:
     out-of-order: false
     repair-on-migrate: true
 
-  mail:
-    host: smtp.gmail.com
-    port: 465
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          ssl:
-            enable: true
-          socketFactory:
-            port: 465
-            class: javax.net.ssl.SSLSocketFactory
-            fallback: false
 
   jackson:
     serialization:
@@ -103,6 +88,9 @@ server:
     include-binding-errors: always
 
 orbitx:
+  mail:
+    resend-api-key: ${RESEND_API_KEY:}
+    from: Orbit X <onboarding@resend.dev>
   jwt:
     secret: ${JWT_SECRET:4F72626974582D4A57542D5365637265742D4B65792D537570657253656375726521}
     expiration: 86400000
