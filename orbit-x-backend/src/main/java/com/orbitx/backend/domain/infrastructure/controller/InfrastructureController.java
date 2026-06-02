@@ -1,5 +1,4 @@
 package com.orbitx.backend.domain.infrastructure.controller;
-
 import com.orbitx.backend.domain.dashboard.controller.DashboardController;
 import com.orbitx.backend.domain.infrastructure.dto.DatacenterResponse;
 import com.orbitx.backend.domain.infrastructure.dto.SatelliteResponse;
@@ -12,20 +11,15 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
-
 @RestController
 @RequestMapping("/api/v1/infrastructure")
 @RequiredArgsConstructor
 @Tag(name = "Infraestrutura", description = "Datacenters globais e rede de satélites orbitais")
 @SecurityRequirement(name = "BearerAuth")
 public class InfrastructureController {
-
     private final InfrastructureService infrastructureService;
-
     @GetMapping("/datacenters")
     @Operation(
             summary = "Listar todos os datacenters",
@@ -40,16 +34,13 @@ public class InfrastructureController {
                         linkTo(methodOn(InfrastructureController.class).getSatellites()).withRel("satellites")
                 ))
                 .toList();
-
         CollectionModel<EntityModel<DatacenterResponse>> model = CollectionModel.of(items,
                 linkTo(methodOn(InfrastructureController.class).getDatacenters()).withSelfRel(),
                 linkTo(methodOn(InfrastructureController.class).getSatellites()).withRel("satellites"),
                 linkTo(methodOn(DashboardController.class).getAlerts()).withRel("alerts")
         );
-
         return ResponseEntity.ok(model);
     }
-
     @GetMapping("/satellites")
     @Operation(
             summary = "Listar satélites ativos",
@@ -63,12 +54,10 @@ public class InfrastructureController {
                         linkTo(methodOn(InfrastructureController.class).getDatacenters()).withRel("datacenters")
                 ))
                 .toList();
-
         CollectionModel<EntityModel<SatelliteResponse>> model = CollectionModel.of(items,
                 linkTo(methodOn(InfrastructureController.class).getSatellites()).withSelfRel(),
                 linkTo(methodOn(InfrastructureController.class).getDatacenters()).withRel("datacenters")
         );
-
         return ResponseEntity.ok(model);
     }
 }

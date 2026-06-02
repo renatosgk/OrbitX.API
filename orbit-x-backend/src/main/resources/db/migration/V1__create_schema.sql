@@ -25,7 +25,6 @@ CREATE TABLE users (
         REFERENCES companies(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_users_email   ON users (email);
 CREATE INDEX idx_users_company ON users (company_id);
 
 CREATE TABLE datacenters (

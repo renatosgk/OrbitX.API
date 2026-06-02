@@ -1,5 +1,4 @@
 package com.orbitx.backend.config;
-
 import com.orbitx.backend.domain.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -12,19 +11,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
 @Configuration
 @RequiredArgsConstructor
 public class ApplicationConfig {
-
     private final UserRepository userRepository;
-
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmailWithCompany(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
     }
-
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -32,12 +27,10 @@ public class ApplicationConfig {
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
-
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

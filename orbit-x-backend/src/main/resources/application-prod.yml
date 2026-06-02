@@ -9,7 +9,7 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        default_schema: ${DATABASE_SCHEMA:RM559810}
+        default_schema: ${DATABASE_SCHEMA:RM560416}
 
   flyway:
     enabled: true

@@ -1,10 +1,7 @@
 package com.orbitx.backend.domain.infrastructure.dto;
-
 import com.orbitx.backend.domain.infrastructure.entity.Datacenter;
 import com.orbitx.backend.domain.infrastructure.entity.enums.ThermalState;
-
 import java.math.BigDecimal;
-
 public record DatacenterResponse(
         Long id,
         String name,

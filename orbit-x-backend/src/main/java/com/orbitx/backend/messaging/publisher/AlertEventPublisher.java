@@ -31,7 +31,7 @@ public class AlertEventPublisher {
                     event.eventId(), event.severity(), event.sourceComponent());
         } catch (AmqpException ex) {
             log.error("Falha ao publicar evento de alerta id={}: {}", event.eventId(), ex.getMessage());
-            
+
         }
     }
 

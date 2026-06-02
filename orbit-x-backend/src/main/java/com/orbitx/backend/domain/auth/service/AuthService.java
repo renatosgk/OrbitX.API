@@ -80,7 +80,7 @@ public class AuthService {
     }
 
     public Map<String, String> forgotPassword(ForgotPasswordRequest request) {
-        
+
         boolean exists = userRepository.existsByEmail(request.email());
         log.info("Recuperação de senha solicitada para: {} (existe={})", request.email(), exists);
 

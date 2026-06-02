@@ -1,10 +1,7 @@
 package com.orbitx.backend.domain.dashboard.dto;
-
 import com.orbitx.backend.domain.dashboard.entity.Alert;
 import com.orbitx.backend.domain.dashboard.entity.enums.AlertSeverity;
-
 import java.time.Instant;
-
 public record AlertResponse(
         Long id,
         String title,

@@ -1,5 +1,4 @@
 package com.orbitx.backend.domain.reports.controller;
-
 import com.orbitx.backend.domain.dashboard.controller.DashboardController;
 import com.orbitx.backend.domain.infrastructure.controller.InfrastructureController;
 import com.orbitx.backend.domain.reports.dto.SustainabilityScoreResponse;
@@ -13,18 +12,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
-
 @RestController
 @RequestMapping("/api/v1/reports")
 @RequiredArgsConstructor
 @Tag(name = "Relatórios & ESG", description = "Pontuação de sustentabilidade, métricas ESG e exportação PDF")
 @SecurityRequirement(name = "BearerAuth")
 public class ReportsController {
-
     private final ReportsService reportsService;
-
     @GetMapping("/sustainability-score")
     @Operation(
             summary = "Obter pontuação de sustentabilidade ESG",
@@ -40,7 +35,6 @@ public class ReportsController {
         );
         return ResponseEntity.ok(model);
     }
-
     @GetMapping("/export/pdf")
     @Operation(
             summary = "Exportar relatório executivo em PDF",

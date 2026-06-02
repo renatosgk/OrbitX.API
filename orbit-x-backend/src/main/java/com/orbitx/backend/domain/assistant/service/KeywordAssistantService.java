@@ -132,7 +132,8 @@ public class KeywordAssistantService implements AssistantPort {
 
             Posso ajudar com:  🌡️ Térmica  ⚡ Energia  🌍 ESG  🛰️ Satélites  🚨 Alertas
 
-            Dica: Configure OPENAI_API_KEY para ativar o modo IA completo com RAG e Chamada de Ferramentas.
+            Tente perguntar: "temperatura atual", "consumo de energia", "score ESG" ou "alertas".
+            (Modo completo com IA generativa: configure GROQ_API_KEY no .env — chave gratuita em console.groq.com)
             """;
 
     private boolean containsAny(String input, String... keywords) {

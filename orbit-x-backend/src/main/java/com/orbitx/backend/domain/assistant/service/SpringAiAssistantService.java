@@ -61,7 +61,7 @@ public class SpringAiAssistantService implements AssistantPort {
 
     @Override
     public ChatResponse chat(ChatRequest request) {
-        
+
         String ragContext   = knowledgeBase.getRelevantContext(request.message());
         String systemPrompt = SYSTEM_PROMPT_TEMPLATE.replace("{rag_context}", ragContext);
 

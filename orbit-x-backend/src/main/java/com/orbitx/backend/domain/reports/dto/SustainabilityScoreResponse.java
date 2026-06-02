@@ -1,8 +1,6 @@
 package com.orbitx.backend.domain.reports.dto;
-
 import java.math.BigDecimal;
 import java.time.Instant;
-
 public record SustainabilityScoreResponse(
         int esgScore,
         String esgGrade,

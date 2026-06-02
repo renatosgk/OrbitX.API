@@ -10,7 +10,7 @@ public record ClimateDataDto(
         String condition,    
         double coolingLoadFactor  
 ) {
-    
+
     public static ClimateDataDto neutral() {
         return new ClimateDataDto("UNKNOWN", 20.0, 50.0, "CLEAR", 1.0);
     }

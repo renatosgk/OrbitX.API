@@ -1,10 +1,7 @@
 package com.orbitx.backend.domain.auth.dto;
-
 import com.orbitx.backend.domain.auth.entity.User;
 import com.orbitx.backend.domain.auth.entity.UserRole;
-
 import java.time.Instant;
-
 public record UserProfileDto(
         Long id,
         String name,

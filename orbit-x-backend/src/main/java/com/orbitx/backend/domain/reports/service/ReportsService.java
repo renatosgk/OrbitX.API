@@ -30,7 +30,7 @@ public class ReportsService {
     }
 
     public byte[] exportPdfReport() {
-        
+
         return buildReportContent().getBytes();
     }
 

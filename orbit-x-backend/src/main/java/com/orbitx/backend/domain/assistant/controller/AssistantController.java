@@ -1,5 +1,4 @@
 package com.orbitx.backend.domain.assistant.controller;
-
 import com.orbitx.backend.domain.assistant.dto.ChatRequest;
 import com.orbitx.backend.domain.assistant.dto.ChatResponse;
 import com.orbitx.backend.domain.assistant.port.AssistantPort;
@@ -13,45 +12,30 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
-
 @RestController
 @RequestMapping("/api/v1/assistant")
 @RequiredArgsConstructor
 @Tag(name = "AI Assistant", description = "Assistente contextual com RAG + Tool Calling (Spring AI)")
 @SecurityRequirement(name = "BearerAuth")
 public class AssistantController {
-
     private final AssistantPort assistantPort;
-
     @PostMapping("/chat")
     @Operation(
             summary = "Conversar com o Orbit X AI",
             description = """
                     Envia uma mensagem ao assistente de IA do Orbit X.
-
-                    **Com GROQ_API_KEY configurada:** Utiliza Spring AI com llama-3.3-70b via Groq,
-                    RAG (busca por palavras-chave na base de conhecimento de datacenters) e Tool Calling
-                    (KPIs ao vivo, status dos datacenters, alertas ativos, métricas de sustentabilidade).
-
-                    **Sem chave de API:** Utiliza o motor offline de correspondência por palavras-chave
-                    com injeção de telemetria ao vivo.
-
-                    O campo `history` habilita conversas de múltiplos turnos (janela deslizante de 20 mensagens).
                     """
     )
     public ResponseEntity<EntityModel<ChatResponse>> chat(
             @Valid @RequestBody ChatRequest request
     ) {
         ChatResponse response = assistantPort.chat(request);
-
         EntityModel<ChatResponse> model = EntityModel.of(response,
                 linkTo(methodOn(AssistantController.class).chat(null)).withSelfRel(),
                 linkTo(methodOn(DashboardController.class).getKpis()).withRel("live-kpis"),
                 linkTo(methodOn(DashboardController.class).getAlerts()).withRel("alerts")
         );
-
         return ResponseEntity.ok(model);
     }
 }

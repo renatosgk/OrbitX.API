@@ -1,5 +1,4 @@
 package com.orbitx.backend.domain.dashboard.controller;
-
 import com.orbitx.backend.domain.dashboard.dto.AlertResponse;
 import com.orbitx.backend.domain.dashboard.dto.KpiResponse;
 import com.orbitx.backend.domain.dashboard.service.DashboardService;
@@ -14,20 +13,15 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
-
 @RestController
 @RequestMapping("/api/v1/dashboard")
 @RequiredArgsConstructor
 @Tag(name = "Dashboard", description = "KPIs em tempo real e alertas gerados pela IA")
 @SecurityRequirement(name = "BearerAuth")
 public class DashboardController {
-
     private final DashboardService dashboardService;
-
     @GetMapping("/kpis")
     @Operation(
             summary = "Obter KPIs em tempo real",
@@ -35,7 +29,6 @@ public class DashboardController {
     )
     public ResponseEntity<EntityModel<KpiResponse>> getKpis() {
         KpiResponse kpis = dashboardService.getKpis();
-
         EntityModel<KpiResponse> model = EntityModel.of(kpis,
                 linkTo(methodOn(DashboardController.class).getKpis()).withSelfRel(),
                 linkTo(methodOn(DashboardController.class).getAlerts()).withRel("alerts"),
@@ -43,10 +36,8 @@ public class DashboardController {
                 linkTo(methodOn(InfrastructureController.class).getSatellites()).withRel("satellites"),
                 linkTo(methodOn(ReportsController.class).getSustainabilityScore()).withRel("sustainability")
         );
-
         return ResponseEntity.ok(model);
     }
-
     @GetMapping("/alerts")
     @Operation(
             summary = "Listar alertas ativos da IA",
@@ -59,12 +50,10 @@ public class DashboardController {
                         linkTo(methodOn(DashboardController.class).getKpis()).withRel("kpis")
                 ))
                 .toList();
-
         CollectionModel<EntityModel<AlertResponse>> model = CollectionModel.of(items,
                 linkTo(methodOn(DashboardController.class).getAlerts()).withSelfRel(),
                 linkTo(methodOn(DashboardController.class).getKpis()).withRel("kpis")
         );
-
         return ResponseEntity.ok(model);
     }
 }
