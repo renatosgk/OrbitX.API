@@ -3,19 +3,20 @@ spring:
     name: orbit-x-backend
 
   datasource:
-    url: jdbc:oracle:thin:@oracle.fiap.com.br:1521:ORCL
+    url: ${DATABASE_URL:jdbc:oracle:thin:@oracle.fiap.com.br:1521:ORCL}
     username: ${DATABASE_USERNAME}
     password: ${DATABASE_PASSWORD}
     driver-class-name: oracle.jdbc.OracleDriver
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 2
+      maximum-pool-size: 5
+      minimum-idle: 1
       connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-
-      keepalive-time: 60000
+      idle-timeout: 300000
+      max-lifetime: 600000
+      keepalive-time: 30000
       connection-test-query: SELECT 1 FROM DUAL
+      auto-commit: false
+      initialization-fail-timeout: -1
 
   jpa:
     database-platform: org.hibernate.dialect.OracleDialect
