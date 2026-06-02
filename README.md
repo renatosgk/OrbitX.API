@@ -78,16 +78,16 @@ https://orbitx-api-ve63.onrender.com/swagger-ui/index.html
 ┌─────────────────────────────────────────────────────────────┐
 │               orbit-x-backend  :8080                        │
 │                                                             │
-│  ┌──────────┐ ┌───────────┐ ┌──────────┐ ┌─────────────┐  │
-│  │   Auth   │ │ Dashboard │ │  Infra   │ │  Assistant  │  │
-│  │ /auth/*  │ │ /kpis     │ │ /dc      │ │ /chat       │  │
-│  │          │ │ /alerts   │ │ /sats    │ │ RAG + Tools │  │
-│  └──────────┘ └───────────┘ └──────────┘ └─────────────┘  │
+│  ┌──────────┐ ┌───────────┐ ┌──────────┐ ┌─────────────┐    │
+│  │   Auth   │ │ Dashboard │ │  Infra   │ │  Assistant  │    │
+│  │ /auth/*  │ │ /kpis     │ │ /dc      │ │ /chat       │    │
+│  │          │ │ /alerts   │ │ /sats    │ │ RAG + Tools │    │
+│  └──────────┘ └───────────┘ └──────────┘ └─────────────┘    │
 │                                                             │
-│  ┌──────────────────┐   ┌─────────────────────────────┐    │
-│  │   ReportsService │   │    AlertEventPublisher      │    │
-│  │  /sustainability │   │  → RabbitMQ Exchange        │    │
-│  │  /export/pdf     │   └──────────────┬──────────────┘    │
+│  ┌──────────────────┐   ┌─────────────────────────────┐     │
+│  │   ReportsService │   │    AlertEventPublisher      │     │
+│  │  /sustainability │   │  → RabbitMQ Exchange        │     │
+│  │  /export/pdf     │   └──────────────┬──────────────┘     │
 │  └──────────────────┘                  │                    │
 │                                        │ AMQP               │
 │  ┌──────────────────┐                  │                    │
@@ -99,8 +99,8 @@ https://orbitx-api-ve63.onrender.com/swagger-ui/index.html
 ┌─────────────────────────────────────────────────────────────┐
 │          orbit-x-notification-service  :8085                │
 │                                                             │
-│   AlertEventConsumer  →  NotificationService  →  SMTP      │
-│   (alerts.queue)          (e-mail de alerta)               │
+│   AlertEventConsumer  →  NotificationService  →  SMTP       │
+│   (alerts.queue)          (e-mail de alerta)                │
 │   (thermal.queue)         (log crítico térmico)             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -221,7 +221,7 @@ cp orbit-x-backend/.env.example .env
 | `JWT_SECRET` | Sim | Secret JWT (mín. 64 chars hex) |
 | `GROQ_API_KEY` | Não | Chave Groq (`gsk_...`). Sem ela, modo offline é ativado |
 | `GROQ_AI_ENABLED` | Não | `true` para ativar Spring AI + llama-3.3-70b |
-| `RABBITMQ_ENABLED` | Não | `false` para desabilitar RabbitMQ (necessário no Render) |
+| `RABBITMQ_ENABLED` | Não | `false` para desabilitar RabbitMQ  |
 | `RESEND_API_KEY` | Não | Chave Resend para envio de e-mails de recuperação de senha |
 | `RABBITMQ_HOST` | Não | Host RabbitMQ (padrão: `localhost`) |
 | `RABBITMQ_PORT` | Não | Porta RabbitMQ (padrão: `5672`) |
