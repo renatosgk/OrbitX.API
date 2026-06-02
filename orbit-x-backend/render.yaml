@@ -17,3 +17,5 @@ services:
         sync: false
       - key: GROQ_AI_ENABLED
         value: true
+      - key: RABBITMQ_ENABLED
+        value: false

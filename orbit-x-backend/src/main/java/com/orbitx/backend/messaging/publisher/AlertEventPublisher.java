@@ -6,11 +6,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "spring.rabbitmq.enabled", havingValue = "true", matchIfMissing = true)
 public class AlertEventPublisher {
 
     private final RabbitTemplate rabbitTemplate;
@@ -31,7 +33,6 @@ public class AlertEventPublisher {
                     event.eventId(), event.severity(), event.sourceComponent());
         } catch (AmqpException ex) {
             log.error("Falha ao publicar evento de alerta id={}: {}", event.eventId(), ex.getMessage());
-
         }
     }
 

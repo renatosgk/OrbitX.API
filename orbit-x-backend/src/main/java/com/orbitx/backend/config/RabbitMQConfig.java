@@ -6,10 +6,12 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@ConditionalOnProperty(name = "spring.rabbitmq.enabled", havingValue = "true", matchIfMissing = true)
 public class RabbitMQConfig {
 
     @Value("${orbitx.messaging.exchange}")
@@ -44,7 +46,7 @@ public class RabbitMQConfig {
     public Queue alertsQueue() {
         return QueueBuilder.durable(alertsQueue)
                 .withArgument("x-dead-letter-exchange", DLX_EXCHANGE)
-                .withArgument("x-message-ttl", 86_400_000)  
+                .withArgument("x-message-ttl", 86_400_000)
                 .build();
     }
 
@@ -52,8 +54,8 @@ public class RabbitMQConfig {
     public Queue thermalQueue() {
         return QueueBuilder.durable(thermalQueue)
                 .withArgument("x-dead-letter-exchange", DLX_EXCHANGE)
-                .withArgument("x-priority", 10)  
-                .withArgument("x-message-ttl", 3_600_000)   
+                .withArgument("x-priority", 10)
+                .withArgument("x-message-ttl", 3_600_000)
                 .build();
     }
 
