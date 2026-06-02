@@ -19,3 +19,7 @@ services:
         value: true
       - key: RABBITMQ_ENABLED
         value: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false

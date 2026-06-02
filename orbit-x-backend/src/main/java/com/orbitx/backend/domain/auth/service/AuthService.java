@@ -10,12 +10,16 @@ import com.orbitx.backend.security.JwtService;
 import com.orbitx.backend.shared.exception.OrbitXException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Map;
 
@@ -29,6 +33,10 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final JavaMailSender mailSender;
+
+    @Value("${spring.mail.username}")
+    private String fromEmail;
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
@@ -79,15 +87,50 @@ public class AuthService {
         return AuthResponse.of(token, jwtService.getExpirationMillis(), UserProfileDto.from(user));
     }
 
+    @Transactional
     public Map<String, String> forgotPassword(ForgotPasswordRequest request) {
-
-        boolean exists = userRepository.existsByEmail(request.email());
-        log.info("Recuperação de senha solicitada para: {} (existe={})", request.email(), exists);
+        userRepository.findByEmail(request.email()).ifPresent(user -> {
+            String tempPassword = generateTempPassword();
+            user.setPassword(passwordEncoder.encode(tempPassword));
+            userRepository.save(user);
+            sendTempPasswordEmail(user.getEmail(), user.getName(), tempPassword);
+            log.info("Senha temporária gerada e enviada para: {}", user.getEmail());
+        });
 
         return Map.of(
-                "message", "Se este e-mail estiver cadastrado, um link de recuperação foi enviado.",
+                "message", "Se este e-mail estiver cadastrado, uma senha temporária foi enviada.",
                 "requestId", "reset-" + System.currentTimeMillis()
         );
+    }
+
+    private String generateTempPassword() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$!";
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder(10);
+        for (int i = 0; i < 10; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
+
+    private void sendTempPasswordEmail(String to, String name, String tempPassword) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(to);
+            message.setSubject("Orbit X — Sua senha temporária");
+            message.setText(
+                    "Olá, " + name + "!\n\n" +
+                    "Recebemos uma solicitação de redefinição de senha para sua conta Orbit X.\n\n" +
+                    "Sua senha temporária é: " + tempPassword + "\n\n" +
+                    "Use esta senha para fazer login e altere-a em seguida.\n\n" +
+                    "Se você não solicitou esta redefinição, ignore este e-mail.\n\n" +
+                    "— Equipe Orbit X"
+            );
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Falha ao enviar e-mail de recuperação para {}: {}", to, e.getMessage());
+        }
     }
 
     private Map<String, Object> buildClaims(User user) {
