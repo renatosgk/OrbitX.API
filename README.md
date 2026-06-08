@@ -576,3 +576,8 @@ select * from satellites;
 select * from alerts;
 select * from companies;
 ```
+--- 
+
+## Demosntração do vídeo Pipeline CI/CD OrbitX
+
+[![Vídeo de Demonstração](https://img.youtube.com/vi/-nBD3TrGQ8c/hqdefault.jpg)](https://youtu.be/-nBD3TrGQ8c?si=OT57lpu6MfkPbsfM)
