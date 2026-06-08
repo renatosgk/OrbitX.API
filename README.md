@@ -1,479 +1,578 @@
-# Orbit X — Plataforma de Monitoramento Inteligente de Datacenters
-
-> Plataforma enterprise de monitoramento de datacenters sustentáveis com Inteligência Artificial, rastreamento orbital de satélites e alertas em tempo real.
-
----
-
-## Sumário
-
-- [Sobre o Projeto](#sobre-o-projeto)
-- [Arquitetura](#arquitetura)
-- [Tecnologias](#tecnologias)
-- [Estrutura do Repositório](#estrutura-do-repositório)
-- [Pré-requisitos](#pré-requisitos)
-- [Configuração](#configuração)
-- [Como Executar](#como-executar)
-- [Endpoints da API](#endpoints-da-api)
-- [Autenticação JWT](#autenticação-jwt)
-- [Banco de Dados](#banco-de-dados)
-- [Inteligência Artificial](#inteligência-artificial)
-- [Mensageria (RabbitMQ)](#mensageria-rabbitmq)
-- [Documentação Swagger](#documentação-swagger)
+# Orbit X API — Pipeline CI/CD & CRUD Oracle Database
+> **Projeto de DevOps — Pipeline CI/CD automatizada**
+> API Spring Boot (Orbit X) integrada ao Oracle Database, com esteira CI/CD automatizada via Azure DevOps e deploy em nuvem via Azure Container Instances (ACI) e Azure Container Registry (ACR).
 
 ---
 
-## Sobre o Projeto
-
-O **Orbit X** é uma solução de monitoramento contínuo de datacenters globais, desenvolvida com foco em eficiência energética e sustentabilidade (ESG). A plataforma integra:
-
-- **Monitoramento em tempo real** de KPIs como PUE, temperatura, consumo energético e emissões de carbono
-- **Previsão de superaquecimento** por motor de IA com alertas automáticos
-- **Rastreamento orbital** de satélites (LEO / MEO / GEO) para cobertura de telemetria global
-- **Assistente de IA** com RAG + Tool Calling (Groq / LLaMA 3.3) para consultas em linguagem natural
-- **Score ESG** com comparativo antes/depois da ativação do Orbit X
-- **Mensageria assíncrona** via RabbitMQ com serviço de notificação por e-mail dedicado
-
-**Dados da frota monitorada:**
-
-| Recurso | Total |
-|---|---|
-| Datacenters | 6 regiões globais |
-| Servidores | 32.800 |
-| Satélites orbitais | 5 (LEO / MEO / GEO) |
-| Score ESG | 87/100 — Nota A+ |
-| Redução de PUE | 1,82 → 1,27 (−30,2%) |
-| Carbono compensado | 142,3 t CO₂eq |
+## Integrantes
+- Fabio Henrique de Souza Eduardo → RM 560416
+- Lucas Aurelio de Brito Chicote → RM 559366
+- Gabriel Wu Castro → RM 560210
+- Renato Kenji Sugaki → RM 559810
 
 ---
 
-## Arquitetura
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        CLIENTES                             │
-│              (Browser / App / Swagger UI)                   │
-└───────────────────────────┬─────────────────────────────────┘
-                            │ HTTPS / JWT
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│               orbit-x-backend  :8080                        │
-│                                                             │
-│  ┌──────────┐ ┌───────────┐ ┌──────────┐ ┌─────────────┐  │
-│  │   Auth   │ │ Dashboard │ │  Infra   │ │  Assistant  │  │
-│  │ /auth/*  │ │ /kpis     │ │ /dc      │ │ /chat       │  │
-│  │          │ │ /alerts   │ │ /sats    │ │ RAG + Tools │  │
-│  └──────────┘ └───────────┘ └──────────┘ └─────────────┘  │
-│                                                             │
-│  ┌──────────────────┐   ┌─────────────────────────────┐    │
-│  │   ReportsService │   │    AlertEventPublisher      │    │
-│  │  /sustainability │   │  → RabbitMQ Exchange        │    │
-│  │  /export/pdf     │   └──────────────┬──────────────┘    │
-│  └──────────────────┘                  │                    │
-│                                        │ AMQP               │
-│  ┌──────────────────┐                  │                    │
-│  │  Oracle DB 19c   │                  │                    │
-│  │  Flyway + JPA    │                  │                    │
-│  └──────────────────┘                  │                    │
-└────────────────────────────────────────┼────────────────────┘
-                                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│          orbit-x-notification-service  :8085                │
-│                                                             │
-│   AlertEventConsumer  →  NotificationService  →  SMTP      │
-│   (alerts.queue)          (e-mail de alerta)               │
-│   (thermal.queue)         (log crítico térmico)             │
-└─────────────────────────────────────────────────────────────┘
+## Link do Projeto no Azure DevOps
+```bash
+https://dev.azure.com/GroupFoodly/OrbitX
 ```
 
-**Padrões arquiteturais utilizados:**
-- **DDD (Domain-Driven Design)** — domínios isolados: `auth`, `dashboard`, `infrastructure`, `reports`, `assistant`
-- **Event-Driven Microservices** — publicação/consumo de eventos via RabbitMQ
-- **HATEOAS** — links de navegação hypermedia nas respostas REST
-- **Port & Adapter** — `AssistantPort` desacopla implementações de IA (Groq vs. fallback offline)
-- **Circuit Breaker** — OpenFeign + Spring Cloud para o cliente de clima externo
+---
+
+## Arquitetura da Solução
+
+<img src="Arquitetura-Pipeline-OrbitX.png" width="100%" alt="Arquitetura da Solução OrbitX-Pipeline"/>
 
 ---
 
-## Tecnologias
+| Camada | Tecnologia |
+|--------|-----------|
+| Linguagem | Java 17 + Spring Boot 3.2.5 |
+| Segurança | Spring Security + JWT |
+| Banco de Dados | Oracle Database 19c (FIAP PaaS) |
+| ORM | Hibernate + JPA |
+| Migrations | Flyway |
+| Container | Docker (multi-stage build) |
+| Registry | Azure Container Registry (ACR) |
+| Deploy | Azure Container Instances (ACI) |
+| CI/CD | Azure DevOps Pipelines |
+| IA | Spring AI + Groq (LLaMA 3.3 70B) |
+| Mensageria | RabbitMQ |
 
-### orbit-x-backend
+---
 
-| Tecnologia | Versão | Uso |
-|---|---|---|
-| Java | 17 | Linguagem principal |
-| Spring Boot | 3.2.5 | Framework base |
-| Spring Security | 6.2.x | Autenticação / Autorização |
-| Spring Data JPA | 3.2.x | Persistência |
-| Spring HATEOAS | 2.2.x | Links hypermedia |
-| Spring Cache + Caffeine | — | Cache em memória (TTL 15s / 30s / 5min) |
-| Spring AMQP (RabbitMQ) | 3.1.x | Mensageria assíncrona |
-| Spring Cloud OpenFeign | 2023.0.1 | Cliente HTTP declarativo |
-| Spring AI | 1.0.0 | Integração com LLM (Groq) |
-| JJWT | 0.12.5 | Geração / validação de JWT (HS512) |
-| Flyway | 10.10.0 | Migrações do banco de dados |
-| Oracle JDBC (ojdbc11) | — | Driver Oracle |
-| SpringDoc OpenAPI | 2.5.0 | Documentação Swagger |
-| Lombok | — | Redução de boilerplate |
+## Infraestrutura Provisionada
 
-### orbit-x-notification-service
-
-| Tecnologia | Versão | Uso |
-|---|---|---|
-| Java | 17 | Linguagem principal |
-| Spring Boot | 3.2.5 | Framework base |
-| Spring AMQP (RabbitMQ) | 3.1.x | Consumidor de eventos |
-| Spring Mail | — | Envio de e-mails de alerta |
-| Lombok | — | Redução de boilerplate |
-
-### Infraestrutura
-
-| Ferramenta | Uso |
-|---|---|
-| Docker + Docker Compose | Orquestração dos serviços |
-| RabbitMQ 3.13 (Management) | Message broker |
-| Oracle Database 19c | Banco de dados principal |
+| Recurso | Nome | Região |
+|---------|------|--------|
+| Resource Group | `rg-orbtx` | Brazil South |
+| Container Registry | `javaapimssqlrm559366` | Brazil South |
+| Container Instance | `javaapimssqlrm559366` | Brazil South |
+| Banco de Dados | Oracle (`oracle.fiap.com.br`) | Oracle PaaS |
 
 ---
 
 ## Estrutura do Repositório
 
 ```
-global/
-├── orbit-x-backend/                    # Serviço principal (API REST)
-│   ├── src/main/java/com/orbitx/backend/
-│   │   ├── config/                     # SecurityConfig, SwaggerConfig, CacheConfig,
-│   │   │                               # RabbitMQConfig, FlywayConfig, ApplicationConfig
-│   │   ├── domain/
-│   │   │   ├── auth/                   # Registro, login, JWT, entidades User/Company
-│   │   │   ├── dashboard/              # KPIs, alertas, telemetria, predição IA
-│   │   │   ├── infrastructure/         # Datacenters, satélites, monitoramento orbital
-│   │   │   ├── reports/                # Score ESG, exportação PDF
-│   │   │   └── assistant/              # Chat IA (RAG + Tool Calling + fallback offline)
-│   │   ├── integration/climate/        # Client Feign para API de clima (com fallback)
-│   │   ├── messaging/                  # AlertEvent DTO + AlertEventPublisher
-│   │   ├── security/                   # JwtService, JwtAuthenticationFilter
-│   │   └── shared/                     # ApiResponse, ErrorResponse, exceções globais
-│   ├── src/main/resources/
-│   │   ├── db/migration/               # Flyway: V1 (schema), V2 (seed), V7 (frota)
-│   │   └── application.yml
-│   ├── Dockerfile
-│   └── pom.xml
-│
-├── orbit-x-notification-service/       # Microsserviço de notificações
-│   ├── src/main/java/com/orbitx/notification/
-│   │   ├── config/                     # RabbitMQConfig
-│   │   ├── messaging/consumer/         # AlertEventConsumer (alerts + thermal queues)
-│   │   └── service/                    # NotificationService (e-mail + log crítico)
-│   ├── Dockerfile
-│   └── pom.xml
-│
-├── docker-compose.yml                  # Orquestração: RabbitMQ + backend + notification
-├── .env.example                        # Template de variáveis de ambiente
+OrbitX.API/
+├── orbit-x-backend/
+│   ├── src/
+│   │   └── main/
+│   │       ├── java/com/orbitx/backend/
+│   │       │   ├── config/
+│   │       │   ├── domain/
+│   │       │   │   ├── auth/
+│   │       │   │   ├── dashboard/
+│   │       │   │   ├── infrastructure/
+│   │       │   │   └── reports/
+│   │       │   ├── security/
+│   │       │   └── shared/
+│   │       └── resources/
+│   │           ├── db/migration/
+│   │           │   ├── V1__create_schema.sql
+│   │           │   ├── V2__seed_initial_data.sql
+│   │           │   └── V7__seed_fleet_data.sql
+│   │           ├── application.yml
+│   │           └── application-prod.yml
+│   └── Dockerfile
+├── scripts/
+│   ├── script-bd.sql
+│   └── script-infra.sh
+├── dockerfiles/
+│   └── Dockerfile
+├── azure-pipelines.yml
+├── docker-compose.yml
 └── README.md
 ```
+---
+
+## Scripts dos comandos para colocar no Cloud Shell do Portal Azure 
+- infraACR.sh
+- infra-aci-webapp
+
+# Script para criar o grupo de recursos e o ACR (Azure Container Registry) infraACR.sh 
+
+```bash
+###
+### Variáveis
+###
+grupoRecursos=rg-orbtx
+# Altere a Região conforme orientação do Prof
+regiao=brazilsouth
+#Outras opções:
+#brazilsouth
+#eastus2
+#westus
+#westus2
+# Altere para seu RM
+rm=rm559366
+nomeACR="javaapimssql$rm"
+skuACR=Basic
+
+###
+### Criação do Grupo de Recursos
+###
+# Verifica a existência do grupo de recursos
+if [ $(az group exists --name $grupoRecursos) = true ]; then
+    echo "O grupo de recursos $grupoRecursos já existe"
+else
+    # Cria o grupo de recursos
+    az group create --name $grupoRecursos --location $regiao
+    echo "Grupo de recursos $grupoRecursos criado na localização $regiao"
+fi
+
+###
+### Criação do Azure Container Registry
+###
+# Verifica se o ACR já existe
+if az acr show --name $nomeACR --resource-group $grupoRecursos &> /dev/null; then
+    echo "O ACR $nomeACR já existe"
+else
+    # Cria o ACR
+    az acr create --resource-group $grupoRecursos --name $nomeACR --sku $skuACR
+    echo "ACR $nomeACR criado com sucesso"
+    # Habilita o Usuário Administrador no Azure Container Registry
+    az acr update --name $nomeACR --resource-group $grupoRecursos --admin-enabled true
+    echo "Habilitado com sucesso o usuário Administrador para o ACR $nomeACR"
+fi
+
+#
+# Essa parte do Script só é recomendada para fins de testes e aprendizado
+#
+# WARNING: [Warning] This output may compromise security by showing secrets. Learn more at: https://go.microsoft.com/fwlink/?linkid=2258669
+#
+# Recuperar as credenciais do usuário administrador, armazenar em variáveis de ambiente e mostrar as credenciais
+ADMIN_USER=$(az acr credential show --name $nomeACR --query "username" -o tsv)
+ADMIN_PASSWORD=$(az acr credential show --name $nomeACR --query "passwords[0].value" -o tsv)
+
+# Cria variáveis de ambiente
+export ACR_ADMIN_USER=$ADMIN_USER
+export ACR_ADMIN_PASSWORD=$ADMIN_PASSWORD
+
+# Mostra as variáveis de ambiente
+echo $ACR_ADMIN_USER
+echo $ACR_ADMIN_PASSWORD
+```
+---
+# Script para criar a aplicação de serviço (webapp) e o ACI (Container Instance) infra-aci-webapp.sh
+
+```bash
+###
+### Variáveis
+###
+grupoRecursos=rg-orbtx
+# Altere para seu RM
+rm=rm559366
+nomeACR="javaapimssql$rm"
+imageACR="javaapimssql$rm.azurecr.io/javaapisql:latest"
+serverACR="javaapimssql$rm.azurecr.io"
+userACR=$(az acr credential show --name $nomeACR --query "username" -o tsv)
+passACR=$(az acr credential show --name $nomeACR --query "passwords[0].value" -o tsv)
+nomeACI="javaapimssql$rm"
+# Altere a Região conforme orientação do Prof
+regiao=brazilsouth
+#Outras opções:
+#brazilsouth
+#eastus2
+#westus
+#westus2
+planService=planACRWebApp
+sku=F1
+appName="orbtxwebapp$rm"
+imageACR="javaapimssql$rm.azurecr.io/javaapisql:latest"
+port=80
+
+###
+### Criação do ACI
+###
+az container create \
+    --resource-group $grupoRecursos \
+    --name $nomeACI \
+    --image $imageACR \
+    --cpu 1 \
+    --memory 1 \
+    --os-type Linux \
+    --registry-login-server $serverACR \
+    --registry-username $userACR \
+    --registry-password $passACR \
+    --dns-name-label $nomeACI \
+    --restart-policy Always \
+    --ports 80
+
+###
+### Criação do Web App
+###
+
+### Cria o Plano de Serviço se não existir
+if az appservice plan show --name $planService --resource-group $grupoRecursos &> /dev/null; then
+    echo "O plano de serviço $planService já existe"
+else
+    az appservice plan create --name $planService --resource-group $grupoRecursos --is-linux --sku $sku
+    echo "Plano de serviço $planService criado com sucesso"
+fi 
+### Cria o Serviço de Aplicativo se não existir
+if az webapp show --name $appName --resource-group $grupoRecursos &> /dev/null; then
+    echo "O Serviço de Aplicativo $appName já existe"
+else
+    az webapp create --resource-group $grupoRecursos --plan $planService --name  $appName --deployment-container-image-name $imageACR
+    echo "Serviço de Aplicativo $appName criado com sucesso"
+fi
+### Cria uma variável definindo a porta do Serviço de Aplicativo
+if az webapp show --name $appName --resource-group $grupoRecursos > /dev/null 2>&1; then
+    az webapp config appsettings set --resource-group $grupoRecursos --name $appName --settings WEBSITES_PORT=$port
+    echo "Serviço de Aplicativo $appName configurado para escutar na porta $port com sucesso"
+fi
+```
+---
+### script-infra.sh — Resource Group + ACR + ACI
+
+```bash
+grupoRecursos=rg-orbtx
+regiao=brazilsouth
+rm=rm559366
+nomeACR="javaapimssql$rm"
+nomeACI="javaapimssql$rm"
+skuACR=Basic
+
+# Resource Group
+if [ $(az group exists --name $grupoRecursos) = true ]; then
+    echo "Resource Group $grupoRecursos já existe"
+else
+    az group create --name $grupoRecursos --location $regiao
+    echo "Resource Group $grupoRecursos criado"
+fi
+
+# Azure Container Registry
+if az acr show --name $nomeACR --resource-group $grupoRecursos &> /dev/null; then
+    echo "ACR $nomeACR já existe"
+else
+    az acr create --resource-group $grupoRecursos --name $nomeACR --sku $skuACR
+    az acr update --name $nomeACR --resource-group $grupoRecursos --admin-enabled true
+    echo "ACR $nomeACR criado"
+fi
+
+serverACR="$nomeACR.azurecr.io"
+userACR=$(az acr credential show --name $nomeACR --query "username" -o tsv)
+passACR=$(az acr credential show --name $nomeACR --query "passwords[0].value" -o tsv)
+
+# Azure Container Instance
+az container delete \
+  --resource-group $grupoRecursos \
+  --name $nomeACI \
+  --yes || true
+
+az container create \
+  --resource-group $grupoRecursos \
+  --name $nomeACI \
+  --image $serverACR/javaapirp:latest \
+  --cpu 1 \
+  --memory 1 \
+  --os-type Linux \
+  --registry-login-server $serverACR \
+  --registry-username $userACR \
+  --registry-password $passACR \
+  --dns-name-label $nomeACI \
+  --restart-policy Always \
+  --ports 8080 \
+  --environment-variables \
+    SPRING_PROFILES_ACTIVE="prod" \
+    DATABASE_URL="jdbc:oracle:thin:@oracle.fiap.com.br:1521:ORCL" \
+    DATABASE_USERNAME="$DATABASE_USERNAME" \
+    DATABASE_PASSWORD="$DATABASE_PASSWORD" \
+    DATABASE_SCHEMA="$DATABASE_SCHEMA" \
+    JWT_SECRET="$JWT_SECRET" \
+    PORT="8080" \
+    SPRING_AUTOCONFIGURE_EXCLUDE="org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration"
+
+echo "Container $nomeACI criado com sucesso"
+echo "URL: http://$nomeACI.$regiao.azurecontainer.io:8080/swagger-ui.html"
+```
 
 ---
 
-## Pré-requisitos
+## DDL das Tabelas (script-bd.sql — executado via Flyway)
 
-- **Java 17+**
-- **Maven 3.9+**
-- **Docker** e **Docker Compose** (para execução em container)
-- **Oracle Database 19c** (ou acesso à instância FIAP: `oracle.fiap.com.br:1521:ORCL`)
-- **RabbitMQ** (ou via Docker Compose — já incluído)
-- **Groq API Key** (opcional — sem ela o assistente funciona em modo offline)
+```sql
+CREATE TABLE companies (
+    id          NUMBER(19)    GENERATED BY DEFAULT ON NULL AS IDENTITY PRIMARY KEY,
+    name        VARCHAR2(100) NOT NULL,
+    tax_id      VARCHAR2(20)  NOT NULL,
+    admin_email VARCHAR2(150) NOT NULL,
+    plan        VARCHAR2(20)  DEFAULT 'ENTERPRISE' NOT NULL,
+    created_at  TIMESTAMP     DEFAULT SYSTIMESTAMP NOT NULL,
+    CONSTRAINT uq_companies_tax_id UNIQUE (tax_id)
+);
 
----
+CREATE TABLE users (
+    id          NUMBER(19)    GENERATED BY DEFAULT ON NULL AS IDENTITY PRIMARY KEY,
+    name        VARCHAR2(100) NOT NULL,
+    email       VARCHAR2(150) NOT NULL,
+    password    VARCHAR2(255) NOT NULL,
+    role        VARCHAR2(20)  DEFAULT 'ADMIN' NOT NULL,
+    company_id  NUMBER(19)    NOT NULL,
+    created_at  TIMESTAMP     DEFAULT SYSTIMESTAMP NOT NULL,
+    last_login  TIMESTAMP,
+    active      NUMBER(1)     DEFAULT 1 NOT NULL,
+    CONSTRAINT uq_users_email   UNIQUE (email),
+    CONSTRAINT fk_users_company FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE
+);
 
-## Configuração
+CREATE TABLE datacenters (
+    id                       NUMBER(19)    GENERATED BY DEFAULT ON NULL AS IDENTITY PRIMARY KEY,
+    name                     VARCHAR2(150) NOT NULL,
+    city                     VARCHAR2(100) NOT NULL,
+    country                  VARCHAR2(100) NOT NULL,
+    latitude                 BINARY_DOUBLE NOT NULL,
+    longitude                BINARY_DOUBLE NOT NULL,
+    thermal_state            VARCHAR2(20)  DEFAULT 'STABLE' NOT NULL,
+    regional_consumption_kwh NUMBER(12,2),
+    capacity_servers         NUMBER(10),
+    active                   NUMBER(1)     DEFAULT 1 NOT NULL,
+    created_at               TIMESTAMP     DEFAULT SYSTIMESTAMP NOT NULL
+);
 
-Copie o arquivo de exemplo e preencha os valores:
+CREATE TABLE satellites (
+    id                  NUMBER(19)    GENERATED BY DEFAULT ON NULL AS IDENTITY PRIMARY KEY,
+    name                VARCHAR2(100) NOT NULL,
+    orbit_type          VARCHAR2(10)  NOT NULL,
+    altitude_km         BINARY_DOUBLE NOT NULL,
+    inclination_deg     BINARY_DOUBLE NOT NULL,
+    orbital_period_min  BINARY_DOUBLE NOT NULL,
+    data_link_status    VARCHAR2(20)  DEFAULT 'ACTIVE' NOT NULL,
+    active              NUMBER(1)     DEFAULT 1 NOT NULL,
+    launched_at         TIMESTAMP,
+    CONSTRAINT uq_satellites_name UNIQUE (name)
+);
 
-```bash
-cp orbit-x-backend/.env.example .env
-```
-
-### Variáveis de ambiente
-
-| Variável | Obrigatória | Descrição |
-|---|---|---|
-| `DATABASE_USERNAME` | Sim | Usuário do banco Oracle |
-| `DATABASE_PASSWORD` | Sim | Senha do banco Oracle |
-| `JWT_SECRET` | Sim | Segredo para assinar tokens JWT (mín. 64 chars hex) |
-| `GROQ_API_KEY` | Não | Chave da API Groq (começa com `gsk_`). Sem ela, o assistente usa modo offline |
-| `RABBITMQ_HOST` | Não | Host do RabbitMQ (padrão: `localhost`) |
-| `RABBITMQ_PORT` | Não | Porta do RabbitMQ (padrão: `5672`) |
-| `RABBITMQ_USER` | Não | Usuário RabbitMQ (padrão: `guest`) |
-| `RABBITMQ_PASS` | Não | Senha RabbitMQ (padrão: `guest`) |
-| `SMTP_HOST` | Notification | Host do servidor SMTP |
-| `SMTP_USER` | Notification | Usuário SMTP |
-| `SMTP_PASS` | Notification | Senha SMTP |
-| `OPS_EMAIL` | Notification | E-mail destino dos alertas |
-
-**Gerando um JWT_SECRET seguro:**
-```bash
-openssl rand -hex 32
-```
-
----
-
-## Como Executar
-
-### Com Docker Compose (recomendado)
-
-```bash
-# Clone o repositório
-git clone https://github.com/renatosgk/OrbitX.API.git
-cd OrbitX.API
-
-# Configure as variáveis de ambiente
-cp orbit-x-backend/.env.example .env
-# Edite o .env com seus valores reais
-
-# Suba todos os serviços
-docker compose up --build
-```
-
-Serviços disponíveis após o startup:
-
-| Serviço | URL |
-|---|---|
-| API Backend | http://localhost:8080 |
-| Swagger UI | http://localhost:8080/swagger-ui/index.html |
-| Notification Service | http://localhost:8085 |
-| RabbitMQ Management | http://localhost:15672 (guest/guest) |
-
----
-
-### Execução local (desenvolvimento)
-
-**1. Suba apenas o RabbitMQ:**
-```bash
-docker compose up rabbitmq -d
-```
-
-**2. Execute o backend:**
-```bash
-cd orbit-x-backend
-./mvnw spring-boot:run
-```
-
-**3. Execute o serviço de notificação (opcional):**
-```bash
-cd orbit-x-notification-service
-./mvnw spring-boot:run
+CREATE TABLE alerts (
+    id               NUMBER(19)     GENERATED BY DEFAULT ON NULL AS IDENTITY PRIMARY KEY,
+    title            VARCHAR2(200)  NOT NULL,
+    message          VARCHAR2(4000) NOT NULL,
+    severity         VARCHAR2(20)   NOT NULL,
+    source_component VARCHAR2(100),
+    datacenter_id    NUMBER(19)     REFERENCES datacenters(id) ON DELETE SET NULL,
+    resolved         NUMBER(1)      DEFAULT 0 NOT NULL,
+    created_at       TIMESTAMP      DEFAULT SYSTIMESTAMP NOT NULL,
+    resolved_at      TIMESTAMP
+);
 ```
 
 ---
 
-## Endpoints da API
+## Pipeline CI/CD no Azure DevOps
 
-Todos os endpoints protegidos exigem header: `Authorization: Bearer <token>`
+1. **Azure Boards** — Tasks criadas e acompanhadas até a conclusão
+2. **Branch de feature** — Desenvolvimento na branch `Teste-API-OrbitX`, isolando da `main`
+3. **Pull Request** — Abertura, revisão e merge para `main`
+4. **Pipeline CI** — `azure-pipelines.yml` faz build da imagem Docker e publica no ACR
+5. **Release CD** — Deploy automático no ACI após novo artefato
 
-### Autenticação — `/api/v1/auth`
+### azure-pipelines.yml
 
-| Método | Endpoint | Auth | Descrição |
-|---|---|---|---|
-| `POST` | `/auth/register` | Não | Registra empresa + admin e retorna JWT |
-| `POST` | `/auth/login` | Não | Autentica e retorna JWT |
-| `POST` | `/auth/forgot-password` | Não | Inicia fluxo de recuperação de senha |
+```yaml
+trigger:
+  - Teste-API-OrbitX
+pool:
+  vmImage: ubuntu-latest
+stages:
+  - stage: Build
+    displayName: "Build e Push para ACR"
+    jobs:
+      - job: BuildAndPush
+        steps:
+          - task: Docker@2
+            displayName: "Build e Push da imagem"
+            inputs:
+              containerRegistry: "javaapimssqlrm559366"
+              repository:        "javaapirp"
+              command:           "buildAndPush"
+              Dockerfile:        "**/Dockerfile"
+              tags: |
+                $(Build.BuildId)
+                latest
+```
 
-### Dashboard — `/api/v1/dashboard`
+---
 
-| Método | Endpoint | Auth | Descrição |
-|---|---|---|---|
-| `GET` | `/dashboard/kpis` | Sim | KPIs em tempo real (energia, temperatura, PUE, carbono, previsão IA) |
-| `GET` | `/dashboard/alerts` | Sim | Alertas ativos não resolvidos |
+## URLs da Aplicação em Nuvem
 
-### Infraestrutura — `/api/v1/infrastructure`
+| Ambiente | URL |
+|----------|-----|
+| Azure Container Instances | `http://javaapimssqlrm559366.brazilsouth.azurecontainer.io:8080` |
+| Swagger UI | `http://javaapimssqlrm559366.brazilsouth.azurecontainer.io:8080/swagger-ui.html` |
 
-| Método | Endpoint | Auth | Descrição |
-|---|---|---|---|
-| `GET` | `/infrastructure/datacenters` | Sim | Lista os 6 datacenters globais (cache 30s) |
-| `GET` | `/infrastructure/satellites` | Sim | Lista os 5 satélites orbitais com posição calculada (cache 15s) |
+---
 
-### Relatórios ESG — `/api/v1/reports`
+## Testes de CRUD via Swagger / Postman
 
-| Método | Endpoint | Auth | Descrição |
-|---|---|---|---|
-| `GET` | `/reports/sustainability-score` | Sim | Score ESG (0-100), carbon offset, comparativo antes/depois (cache 5min) |
-| `GET` | `/reports/export/pdf` | Sim | Download do relatório executivo em PDF |
+> **URL base:** `http://javaapimssqlrm559366.brazilsouth.azurecontainer.io:8080`
 
-### Assistente IA — `/api/v1/assistant`
+### Autenticação
 
-| Método | Endpoint | Auth | Descrição |
-|---|---|---|---|
-| `POST` | `/assistant/chat` | Sim | Chat com o Orbit X AI (RAG + Tool Calling ou modo offline) |
-
-**Exemplo de payload — Chat:**
+#### Register (Create)
+- **Método:** `POST`
+- **URL:** `/api/v1/auth/register`
 ```json
 {
-  "message": "Qual é o status térmico dos datacenters agora?",
-  "history": []
+  "companyName": "Orbit X Corp",
+  "taxId": "12345678000199",
+  "adminName": "Lucas",
+  "email": "lucas@orbitx.com",
+  "password": "senha123"
 }
 ```
 
+#### Login
+- **Método:** `POST`
+- **URL:** `/api/v1/auth/login`
+```json
+{
+  "email": "lucas@orbitx.com",
+  "password": "senha123"
+}
+```
+> Copie o `accesToken` retornado e cole no **Authorize** para fazer as próximas realizações do CRUD, se for via Swagger
+> Copie o `accesToken` retornado e use como **Bearer Token** nas próximas requisições, se for via Postaman
 ---
 
-## Autenticação JWT
+### CRUD de datacenters
 
-O sistema utiliza **JWT com algoritmo HS512**, válido por **24 horas**.
-
-**1. Registrar conta:**
-```bash
-curl -X POST http://localhost:8080/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "companyName": "Minha Empresa",
-    "taxId": "12345678000199",
-    "adminName": "João Silva",
-    "email": "joao@empresa.com",
-    "password": "Senha@1234"
-  }'
+#### Criar datacenters (Create)
+- **Método:** `POST`
+- **URL:** `/api/v1/infrastructure/datacenters`
+```json
+{
+  "name": "Orbit X - Sao Paulo Alpha",
+  "city": "Sao Paulo",
+  "country": "Brazil",
+  "latitude": -23.5505,
+  "longitude": -46.6333,
+  "thermalState": "STABLE",
+  "regionalConsumptionKwh": 18500.00,
+  "capacityServers": 4200
+}
+```
+#### Atualizar datacenters (Update)
+- **Método:** `PUT`
+- **URL:** `/api/v1/infrastructure/datacenters/{id}`
+```json
+{
+  "name": "Orbit X - Sao Paulo Alpha",
+  "city": "Sao Paulo",
+  "country": "Brazil",
+  "latitude": -23.5505,
+  "longitude": -46.6333,
+  "thermalState": "OPTIMAL",
+  "regionalConsumptionKwh": 19000.00,
+  "capacityServers": 4500
+}
 ```
 
-**2. Usar o token retornado:**
-```bash
-# O token está em: data.accessToken
-TOKEN="eyJhbGci..."
+#### Deletar datacenters (Delete)
+- **Método:** `DELETE`
+- **URL:** `/api/v1/infrastructure/datacenters/{id}`
 
-curl http://localhost:8080/api/v1/dashboard/kpis \
-  -H "Authorization: Bearer $TOKEN"
+
+#### Listar datacenters (Read)
+- Mostrar persistencia de dados
+```sql
+select * from datacenters;
+```
+---
+
+### CRUD de Satélites
+
+#### Criar satellites (Create)
+- **Método:** `POST`
+- **URL:** `/api/v1/infrastructure/satellites`
+```json
+{
+  "name": "OX-SAT-01 Atlas",
+  "orbitType": "LEO",
+  "altitudeKm": 550.0,
+  "inclinationDeg": 53.0,
+  "orbitalPeriodMin": 95.5,
+  "dataLinkStatus": "ACTIVE",
+  "launchedAt": "2023-03-15T10:00:00Z"
+}
+```
+#### Atualizar satellites (Update)
+- **Método:** `PUT`
+- **URL:** `/api/v1/infrastructure/satellites/{id}`
+```json
+{
+  "name": "OX-SAT-01 Atlas",
+  "orbitType": "LEO",
+  "altitudeKm": 560.0,
+  "inclinationDeg": 53.0,
+  "orbitalPeriodMin": 95.5,
+  "dataLinkStatus": "DEGRADED",
+  "launchedAt": "2023-03-15T10:00:00Z"
+}
 ```
 
-**Claims incluídos no token:**
-
-| Campo | Descrição |
-|---|---|
-| `sub` | E-mail do usuário |
-| `role` | `ADMIN` / `OPERATOR` / `VIEWER` |
-| `companyId` | ID da empresa |
-| `companyName` | Nome da empresa |
-
+#### Deletar satellites (Delete)
+- **Método:** `DELETE`
+- **URL:** `/api/v1/infrastructure/satellites/{id}`
 ---
 
-## Banco de Dados
-
-O schema é gerenciado automaticamente pelo **Flyway** na inicialização da aplicação.
-
-### Tabelas principais
-
-| Tabela | Descrição |
-|---|---|
-| `companies` | Empresas cadastradas (plano STARTER / PROFESSIONAL / ENTERPRISE) |
-| `users` | Usuários com roles (ADMIN / OPERATOR / VIEWER) |
-| `datacenters` | 6 datacenters globais com coordenadas geográficas |
-| `satellites` | 5 satélites orbitais (LEO / MEO / GEO) |
-| `alerts` | Histórico de alertas com severidade e componente de origem |
-
-### Migrações Flyway
-
-| Versão | Arquivo | Descrição |
-|---|---|---|
-| V1 | `V1__create_schema.sql` | Criação de todas as tabelas e índices |
-| V2 | `V2__seed_initial_data.sql` | Dados iniciais de configuração |
-| V7 | `V7__seed_fleet_data.sql` | Seed dos 6 datacenters + 5 satélites |
-
-> **Nota Oracle:** O `FlywayConfig` executa `repair()` antes de `migrate()` para limpar entradas com falha, contornando a limitação de DDL não-transacional do Oracle.
-
----
-
-## Inteligência Artificial
-
-### Assistente com RAG + Tool Calling (modo online)
-
-Quando `GROQ_API_KEY` começa com `gsk_`, o `SpringAiAssistantService` é ativado:
-
-- **Modelo:** `llama-3.3-70b-versatile` via Groq (endpoint compatível com OpenAI)
-- **RAG:** `KnowledgeBaseConfig` injeta contexto técnico da base de conhecimento Orbit X no system prompt
-- **Tools disponíveis (Spring AI `@Tool`):**
-
-| Tool | Descrição |
-|---|---|
-| `getLiveKpis()` | Busca temperatura, energia, PUE e risco de superaquecimento ao vivo |
-| `getDatacenterStatus()` | Estado térmico de todos os datacenters |
-| `getActiveAlerts()` | Alertas não resolvidos do motor de IA |
-| `getSustainabilityMetrics()` | Score ESG, carbon offset e comparativo |
-
-### Assistente por palavras-chave (modo offline)
-
-Sem chave Groq, o `KeywordAssistantService` entra em ação — responde consultas sobre temperatura, energia, ESG, satélites e alertas usando dados da telemetria simulada, sem latência de rede.
-
-### Motor de predição IA
-
-O `AiPredictionService` calcula a probabilidade de superaquecimento e gera recomendações de resfriamento baseadas em temperatura e PUE:
-
-| Temperatura | Probabilidade | Modo |
-|---|---|---|
-| > 30°C | ≥ 90% | `TURBO_COOLING` |
-| 27–30°C | 50–90% | `ENHANCED_COOLING` |
-| 24–27°C | 20–50% | `STANDARD_COOLING` |
-| < 24°C | < 20% | `GREEN_MODE` |
-
----
-
-## Mensageria (RabbitMQ)
-
-### Topologia
-
-```
-orbit-x-backend
-       │
-       ├── publishAlert()       → orbitx.exchange  [alert.event]   → orbitx.alerts.queue
-       └── publishThermalCritical() → orbitx.exchange [thermal.critical] → orbitx.thermal.queue
-                                                                              │
-                                                               orbit-x-notification-service
-                                                                    │
-                                                                    ├── consumeAlert()          → sendEmailAlert()
-                                                                    └── consumeThermalCritical() → logThermalCritical()
-                                                                                                   + sendEmailAlert()
+#### Listar satellites (Read)
+- Mostrar persistencia de dados
+```sql
+select * from satellites;
 ```
 
-### Regras de publicação
+### CRUD de Alertas
 
-- **`alert.event`** — publicado quando temperatura ≥ 27°C ou PUE elevado (alertas HIGH / CRITICAL gerados dinamicamente)
-- **`thermal.critical`** — publicado quando probabilidade de superaquecimento ≥ 70% (sempre `CRITICAL`)
-
-### Configuração do consumidor
-
-- **ACK manual** com `basicAck` / `basicNack`
-- **Concorrência `thermal.queue`:** 2 threads paralelas
-- **Dead-letter:** mensagens com `basicNack(false, false)` são descartadas (sem requeue)
-
----
-
-## Documentação Swagger
-
-A documentação interativa da API está disponível em:
-
-```
-http://localhost:8080/swagger-ui/index.html
+#### Criar alerts (Create)
+- **Método:** `POST`
+- **URL:** `/api/v1/dashboard/alerts`
+```json
+{
+  "title": "Risco Térmico Crítico",
+  "message": "Temperatura acima do limite no datacenter de Tokyo.",
+  "severity": "CRITICAL",
+  "sourceComponent": "AI_ENGINE",
+  "datacenterId": 1
+}
 ```
 
-Para testar endpoints protegidos:
-1. Faça `POST /api/v1/auth/login` ou `POST /api/v1/auth/register`
-2. Copie o valor de `data.accessToken`
-3. Clique em **Authorize** (cadeado) no topo da página
-4. Cole o token no campo **BearerAuth** e confirme
+#### Listar alerts (Read)
+- Mostrar persistencia de dados
+```sql
+select * from alerts;
+```
 
-**Grupos de endpoints documentados:**
+#### Atualizar alerts (Update)
+- **Método:** `PUT`
+- **URL:** `/api/v1/dashboard/alerts/{id}`
+```json
+{
+  "title": "Risco Térmico Atualizado",
+  "message": "Temperatura normalizada após ativação do sistema de resfriamento.",
+  "severity": "LOW",
+  "sourceComponent": "AI_ENGINE",
+  "datacenterId": 1
+}
+```
 
-| Tag | Descrição |
-|---|---|
-| `Autenticação` | Registro, login e recuperação de senha |
-| `Dashboard` | KPIs em tempo real e alertas da IA |
-| `Infraestrutura` | Datacenters globais e frota de satélites |
-| `Relatórios & ESG` | Score de sustentabilidade e exportação PDF |
-| `AI Assistant` | Assistente contextual com RAG e Tool Calling |
+#### Resolver alerts (Patch)
+- **Método:** `PATCH`
+- **URL:** `/api/v1/dashboard/alerts/{id}/resolve`
+
+#### Deletar alerts (Delete)
+- **Método:** `DELETE`
+- **URL:** `/api/v1/dashboard/alerts/{id}`
 
 ---
 
-## Integrantes do Grupo
+## Evidência de Persistência no Banco (Oracle — SQL Developer)
 
-| Nome                | RM |
-|---------------------|---|
-| Renato Kenji Sugaki | RM559810 |
-
----
-
-*Orbit X — Monitoramento Inteligente de Datacenters Sustentáveis*
+```sql
+select * from users;
+select * from datacenters;
+select * from satellites;
+select * from alerts;
+select * from companies;
+```
