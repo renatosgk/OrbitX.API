@@ -19,7 +19,7 @@ https://dev.azure.com/GroupFoodly/OrbitX
 
 ---
 
-## Arquitetura da Solução
+## Arquitetura da Solução OrbitX
 
 <img src="Arquitetura-Pipeline-OrbitX.png" width="100%" alt="Arquitetura da Solução OrbitX-Pipeline"/>
 
