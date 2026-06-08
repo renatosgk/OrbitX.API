@@ -1,5 +1,5 @@
 trigger:
-  - Teste-API-OrbitX
+  - main
 pool:
   vmImage: ubuntu-latest
 stages:
