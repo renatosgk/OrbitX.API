@@ -6,6 +6,9 @@
 
 ---
 ### Vídeos
+
+Explicação da API: https://youtu.be/cxXcOJisgOs?si=85ujr2AuqlGJRF8r
+
 Demostração do aplicativo: https://youtu.be/qlj06KPGymE?si=LhRneNxn8p0sq_a_
 
 Pitch: https://www.youtube.com/watch?v=kfpY8qv7_oo
